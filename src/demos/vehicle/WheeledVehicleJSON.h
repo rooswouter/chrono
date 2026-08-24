@@ -65,7 +65,7 @@ class HMMWV_Model : public WheeledVehicleJSON {
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }
     virtual std::string TireJSON(unsigned int axle) const override {
-        ////return "hmmwv/tire/HMMWV_RigidTire.json";
+        return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
         return "hmmwv/tire/HMMWV_TMeasyTire.json";
         ////return "hmmwv/tire/HMMWV_TMsimpleTire.json";
@@ -297,6 +297,47 @@ class UT_Model : public Trailer_Model {
     }
 };
 
+class DodgeRamTRX_Model : public WheeledVehicleJSON
+{
+public:
+    virtual std::string ModelName() const override { return "Dodge Ram TRX"; }
+    virtual std::string VehicleJSON() const override { return "dodgeramtrx/vehicle/DodgeRamTRX_Vehicle.json"; }
+    virtual std::string TireJSON(unsigned int axle) const override
+    {
+        return "dodgeramtrx/tire/DodgeRamTRX_RigidTire.json";
+    }
+    virtual std::string EngineJSON() const override
+    {
+        return "dodgeramtrx/powertrain/DodgeRamTRX_5.7Hemi.json";
+        return "dodgeramtrx/powertrain/DodgeRamTRX_EngineShafts.json";
+    }
+    virtual std::string TransmissionJSON() const override
+    {
+        return "dodgeramtrx/powertrain/DodgeRamTRX_ZH8HP95.json";
+        return "dodgeramtrx/powertrain/DodgeRamTRX_AutomaticTransmissionShafts.json";
+    }
+    virtual double CameraDistance() const override { return 6.0; }
+};
+class Generic_Model : public WheeledVehicleJSON
+{
+public:
+    virtual std::string ModelName() const override { return "Generic SolidAxles (JSON)"; }
+    virtual std::string VehicleJSON() const override { return "generic/vehicle/Vehicle_SolidAxles.json"; }
+    virtual std::string TireJSON(unsigned int axle) const override
+    {
+        return "generic/tire/RigidTire.json";
+    }
+    virtual std::string EngineJSON() const override
+    {
+        return "generic/powertrain/EngineShafts.json";
+    }
+    virtual std::string TransmissionJSON() const override
+    {
+        return "generic/powertrain/AutomaticTransmissionShafts.json";
+    }
+    virtual double CameraDistance() const override { return 6.0; }
+};
+
 // =============================================================================
 
 std::vector<std::pair<std::shared_ptr<WheeledVehicleJSON>, std::string>> WheeledVehicleJSON::List() {
@@ -313,7 +354,9 @@ std::vector<std::pair<std::shared_ptr<WheeledVehicleJSON>, std::string>> Wheeled
         {chrono_types::make_shared<MTV_Model>(), "MTV"},
         {chrono_types::make_shared<Duro_Model>(), "Duro"},
         {chrono_types::make_shared<Gator_Model>(), "Gator"},
-        {chrono_types::make_shared<ACV_Model>(), "Skid steer"}};
+        {chrono_types::make_shared<ACV_Model>(), "Skid steer"},
+        { chrono_types::make_shared<DodgeRamTRX_Model>(), "DodgeRam TRX" },
+        { chrono_types::make_shared<Generic_Model>(), "Generic Solid Axles (JSON)" } };
 
     return models;
 }

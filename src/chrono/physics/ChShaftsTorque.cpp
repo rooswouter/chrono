@@ -39,8 +39,10 @@ void ChShaftsTorque::IntLoadResidual_F(const unsigned int off,  // offset in R r
                                        ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                        const double c           // a scaling factor
 ) {
-    if (shaft1->IsActive())
+    if (shaft1->IsActive()) {
+        printf("T = %f, R = %f\n", torque, R(shaft1->GetOffset_w()));
         R(shaft1->GetOffset_w()) += torque * c;
+    }
     if (shaft2->IsActive())
         R(shaft2->GetOffset_w()) += -torque * c;
 }

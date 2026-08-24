@@ -57,7 +57,6 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorque {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-  private:
     std::shared_ptr<ChFunction> Tw;  ///< torque as function of angular vel.
     double throttle;
 

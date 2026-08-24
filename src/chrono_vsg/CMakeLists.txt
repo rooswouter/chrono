@@ -53,6 +53,8 @@ set(CE_VSG_BASE_FILES
     ChApiVSG.h
     ChVisualSystemVSG.h
     ChVisualSystemVSG.cpp
+    ChMouseOrbitZoomCameraVSGPlugin.h
+    ChMouseOrbitZoomCameraVSGPlugin.cpp
     ChGuiComponentVSG.h
     ChGuiComponentVSG.cpp
     ChEventHandlerVSG.h

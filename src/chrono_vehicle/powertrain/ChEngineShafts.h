@@ -69,7 +69,6 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     /// Engine speed-torque braking effect because of losses.
     virtual void SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
-  private:
     /// Initialize this engine system.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis) override;
 
