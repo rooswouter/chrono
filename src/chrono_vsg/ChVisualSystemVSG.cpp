@@ -504,6 +504,7 @@ void ChVisualSystemVSG::AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> pl
     plugin->OnBindAssets();
     for (const auto& eh : plugin->m_evhandler) {
         auto evhandler_wrapper = EventHandlerWrapper::create(eh, this);
+        m_viewer->addEventHandler(evhandler_wrapper);
     }
 }
 
@@ -926,6 +927,7 @@ void ChVisualSystemVSG::Initialize() {
     for (auto& plugin : m_plugins) {
         for (const auto& eh : plugin->m_evhandler) {
             auto evhandler_wrapper = EventHandlerWrapper::create(eh, this);
+            m_viewer->addEventHandler(evhandler_wrapper);
         }
     }
 
@@ -933,7 +935,14 @@ void ChVisualSystemVSG::Initialize() {
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
     // Add event handler for mouse camera view manipulation
-    if (m_camera_trackball)
+    bool skip_default_trackball = false;
+    for (auto& plugin : m_plugins) {
+        if (plugin && plugin->DisableDefaultCameraTrackball()) {
+            skip_default_trackball = true;
+            break;
+        }
+    }
+    if (m_camera_trackball && !skip_default_trackball)
         m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 
     // assign both compute and render command graphs to the viewer

@@ -26,8 +26,12 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
+#include "chrono_vsg/ChMouseOrbitZoomCameraVSGPlugin.h"
+
 #include "demos/vehicle/WheeledVehicleJSON.h"
 #include "demos/SetChronoSolver.h"
+
+
 
 // =============================================================================
 
@@ -61,21 +65,25 @@ ChOutput::Mode vehicle_output_mode = ChOutput::Mode::FRAMES;
 
 // =============================================================================
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Select vehicle model (see WheeledVehicleJSON.h)
     auto models = WheeledVehicleJSON::List();
 
     int num_models = (int)models.size();
-    int which = 0;
-    std::cout << "Options:\n";
-    for (int i = 0; i < num_models; i++)
-        std::cout << i + 1 << "  " << models[i].second << std::endl;
-    std::cout << "\nSelect vehicle: ";
-    std::cin >> which;
-    std::cout << std::endl;
-    ChClampValue(which, 1, num_models);
+    int which = -1;
+    if (which < 0) {
+        std::cout << "Options:\n";
+        for (int i = 0; i < num_models; i++)
+            std::cout << i + 1 << "  " << models[i].second << std::endl;
+        std::cout << "\nSelect vehicle: ";
+        std::cin >> which;
+        std::cout << std::endl;
+        ChClampValue(which, 1, num_models);
+    }
+    
 
     const auto& vehicle_model = models[which - 1].first;
 
@@ -131,7 +139,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Set solver and integrator
-    double step_size = 2e-3;
+    double step_size = 1e-3;
     auto solver_type = ChSolver::Type::BARZILAIBORWEIN;
     auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     if (vehicle.HasBushings()) {
@@ -163,6 +171,16 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();
+
+    // Replace the vehicle chase-camera mouse interaction with orbit/zoom:
+    // - left mouse drag: orbit around the camera target
+    // - right mouse drag (vertical): zoom in/out
+    //
+    // Note: this requires disabling `vis->Advance(step_size)` below, because
+    // `ChWheeledVehicleVisualSystemVSG` updates the camera from its chase-camera in `Advance()`.
+    auto orbitPlugin = chrono_types::make_shared<chrono::vsg3d::ChMouseOrbitZoomCameraVSGPlugin>(chrono::CameraVerticalDir::Z);
+    vis->AttachPlugin(orbitPlugin);
+
     vis->Initialize();
 
     // Initialize output directories
@@ -195,6 +213,11 @@ int main(int argc, char* argv[]) {
 
     int sim_frame = 0;
     int render_frame = 0;
+    ChVector3d prev_cam_target = vehicle.GetChassis()->GetPos();
+
+
+    int mode = 0;   // 0 = paused, 1 = playing, 2 = single step
+
     while (true) {
         double time = sys->GetChTime();
 
@@ -202,10 +225,34 @@ int main(int argc, char* argv[]) {
             if (!vis->Run())
                 break;
 
-            if (time >= render_frame / render_fps) {
+            if (true || time >= render_frame / render_fps) {
+                // Keep the orbit camera "attached" to the moving vehicle by translating
+                // the eye and target by the vehicle's chassis motion between render frames.
+                // (We do not call `vis->Advance(step_size)`; the chase camera would otherwise override
+                // the orbit plugin.)
+                const ChVector3d cur_cam_target = vehicle.GetChassis()->GetPos();
+                const ChVector3d delta = cur_cam_target - prev_cam_target;
+
+                if (delta.Length2() > 1e-20) {
+                    const ChVector3d cam_eye = vis->GetCameraPosition();
+                    vis->SetCameraPosition(cam_eye + delta);
+                    vis->SetCameraTarget(cur_cam_target);
+                    prev_cam_target = cur_cam_target;
+                }
+
                 vis->BeginScene();
                 vis->Render();
                 vis->EndScene();
+                int key = orbitPlugin->GetKey();
+                if (key == 'p') {
+                    if (mode == 1) {
+                        mode = 0;
+                    } else {
+                        mode = 1;
+                    }
+                } else if (key == 'o') {
+                    mode = 2;
+                }
 
                 render_frame++;
             }
@@ -213,28 +260,31 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        // Get driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        if (mode != 0) {
+            if (mode == 2) mode = 0;
+            // Get driver inputs
+            DriverInputs driver_inputs = driver.GetInputs();
 
-        // Update modules (process inputs from other modules)
-        driver.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, terrain);
-        if (add_trailer)
-            trailer->Synchronize(time, driver_inputs, terrain);
-        terrain.Synchronize(time);
-        if (vis)
-            vis->Synchronize(time, driver_inputs);
+            // Update modules (process inputs from other modules)
+            driver.Synchronize(time);
+            vehicle.Synchronize(time, driver_inputs, terrain);
+            if (add_trailer)
+                trailer->Synchronize(time, driver_inputs, terrain);
+            terrain.Synchronize(time);
+            if (vis)
+                vis->Synchronize(time, driver_inputs);
 
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-        vehicle.Advance(step_size);
-        if (add_trailer)
-            trailer->Advance(step_size);
-        terrain.Advance(step_size);
-        if (vis)
-            vis->Advance(step_size);
+            // Advance simulation for one timestep for all modules
+            driver.Advance(step_size);
+            vehicle.Advance(step_size);
+            if (add_trailer)
+                trailer->Advance(step_size);
+            terrain.Advance(step_size);
+            // vis->Advance(step_size) disabled: the chase camera logic updates the VSG camera every step and would
+            // conflict with the orbit/zoom mouse plugin.
 
-        sim_frame++;
+            sim_frame++;
+        }
     }
 
     return 0;

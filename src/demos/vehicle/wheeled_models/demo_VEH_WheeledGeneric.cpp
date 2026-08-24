@@ -31,6 +31,7 @@
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+#include "chrono_vsg/ChMouseOrbitZoomCameraVSGPlugin.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -38,8 +39,8 @@ using namespace chrono::vehicle::generic;
 
 // =============================================================================
 
-SuspensionTypeWV suspension_type = SuspensionTypeWV::DOUBLE_WISHBONE;
-SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
+SuspensionTypeWV suspension_type = SuspensionTypeWV::SOLID_AXLE;
+SteeringTypeWV steering_type = SteeringTypeWV::RACK_PINION;
 BrakeType brake_type = BrakeType::SHAFTS;
 DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD;
 
@@ -161,6 +162,7 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();
+    vis->AttachPlugin(chrono_types::make_shared<chrono::vsg3d::ChMouseOrbitZoomCameraVSGPlugin>(chrono::CameraVerticalDir::Z));
     vis->Initialize();
 
     // ---------------
@@ -171,6 +173,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     vehicle.EnableRealtime(true);
+    ChVector3d prev_cam_target = vehicle.GetChassis()->GetPos();
 
     while (true) {
         double time = vehicle.GetSystem()->GetChTime();
@@ -179,6 +182,15 @@ int main(int argc, char* argv[]) {
             // Render scene
             if (!vis->Run())
                 break;
+            const ChVector3d cur_cam_target = vehicle.GetChassis()->GetPos();
+            const ChVector3d delta = cur_cam_target - prev_cam_target;
+
+            if (delta.Length2() > 1e-20) {
+                const ChVector3d cam_eye = vis->GetCameraPosition();
+                vis->SetCameraPosition(cam_eye + delta);
+                vis->SetCameraTarget(cur_cam_target);
+                prev_cam_target = cur_cam_target;
+            }
             vis->BeginScene();
             vis->Render();
             vis->EndScene();
@@ -211,8 +223,8 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
-        if (vis)
-            vis->Advance(step_size);
+        //if (vis)
+        //    vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

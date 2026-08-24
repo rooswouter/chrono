@@ -790,6 +790,10 @@ class ChVisualSystemVSGPlugin {
   public:
     virtual ~ChVisualSystemVSGPlugin() {}
 
+    /// If true, skip installing the default VSG `Trackball` camera handler.
+    /// Useful for plugins that want to fully control camera interaction themselves.
+    virtual bool DisableDefaultCameraTrackball() const { return false; }
+
     /// TODO - remove AddEventHandler?
     /// A plugin can call the VSG system's AddEventHandler in its OnAttach() function.
 
