@@ -115,13 +115,21 @@ namespace chrono {
                 error_backward = true;
             else
                 error_backward = false;
+            
+            double torque = 0.0;
 
+#if 1
+            // Throttle controls target speed of the engine
             // Control the engine speed to the desired speed based on the throttle position
-            double mw_desired = m_idle_speed + (m_max_speed - m_idle_speed) * driver_inputs.m_throttle;
+            double throttle = driver_inputs.m_throttle;
+            throttle = m_old_throttle + (throttle - m_old_throttle) * m_throttle_lag;
+            m_old_throttle = throttle;
+            throttle = std::clamp(throttle, 0.0, 1.0);
+            double mw_desired = m_idle_speed + (m_max_speed - m_idle_speed) * throttle;
             double error = mw_desired - mw;
 
             // Going faster then throttle position wants, use shuffle torque
-            double torque = 0.0;
+
             if (error < 0.0) {
                 torque = m_shuffle_torque_func->GetVal(mw);
             } else {
@@ -132,9 +140,15 @@ namespace chrono {
 
             // Crude P controller
             double modulated_T = std::min(0.1 * error, 1.0);
-            modulated_T *= torque;
-            m_engine->SetTorque(torque);
+            torque *= modulated_T;
+#else
+            // Throttle controls torque
 
+            torque = m_torque_func->GetVal(mw) ;
+            torque *= driver_inputs.m_throttle;
+            torque += m_shuffle_torque_func->GetVal(mw);
+#endif
+            m_engine->SetTorque(torque);
 
         }
 

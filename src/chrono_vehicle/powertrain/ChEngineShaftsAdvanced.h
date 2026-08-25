@@ -102,6 +102,9 @@ namespace chrono {
             double m_idle_speed = 0.0;  ///< The idle speed of the engine [rad/s]
             double m_max_speed = 0.0;  ///< The idle speed of the engine [rad/s]
 
+            double m_old_throttle = 0.0;
+            double m_throttle_lag = 0.01;
+
             std::shared_ptr<ChFunctionInterp> m_torque_func;  ///< torque as function of angular vel.
             std::shared_ptr<ChFunctionInterp> m_shuffle_torque_func;  ///< shuffle torque as function of angular vel. Applied when engine is not driven by throttle input
         };
