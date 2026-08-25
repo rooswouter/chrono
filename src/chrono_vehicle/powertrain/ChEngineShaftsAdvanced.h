@@ -16,13 +16,20 @@
 //  - Idle speed
 //  - Throttle response
 //
+// The losses are not implemented as shaft, but rather as a torque applied when throttle is 0.0
+// Losses should not be added when engine is producing torque, as this leads to reduced performance. Hence second shaft is also not necessary
 // =============================================================================
 
 #ifndef CH_SHAFTS_ADVANCED_ENGINE_H
 #define CH_SHAFTS_ADVANCED_ENGINE_H
 
-#include "chrono_vehicle/powertrain/ChEngineShafts.h"
 
+#include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChEngine.h"
+
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
+#include "chrono/physics/ChShaftsThermalEngine.h"
 
 namespace chrono {
     namespace vehicle {
@@ -30,8 +37,8 @@ namespace chrono {
         /// @addtogroup vehicle_powertrain
         /// @{
 
-        /// Advanced engine model based on the template ChEngineShafts class
-        class CH_VEHICLE_API ChEngineShaftsAdvanced : public ChEngineShafts
+        /// Advanced engine model based on the template ChEngine class
+        class CH_VEHICLE_API ChEngineShaftsAdvanced : public ChEngine
         {
         public:
             virtual ~ChEngineShaftsAdvanced();
@@ -39,15 +46,35 @@ namespace chrono {
             /// Get the name of the vehicle subsystem template.
             virtual std::string GetTemplateName() const override { return "EngineShaftsAdvanced"; }
 
-        protected:
+            /// Return the current engine speed.
+            virtual double GetMotorSpeed() const override { return m_motorshaft->GetPosDt(); }
+
+            /// Return the output engine torque.
+            /// This is the torque passed to a transmission subsystem.
+            virtual double GetOutputMotorshaftTorque() const override;
+
+            /// Return the reaction torque on the chassis body.
+            virtual double GetChassisReactionTorque() const override { return -m_motorblock_to_body->GetTorqueReactionOnShaft(); }
             /// Construct a shafts-based engine model.
             ChEngineShaftsAdvanced(const std::string& name, const ChVector3d& dir_motor_block = ChVector3d(1, 0, 0));
+
+            /// Set inertia of the motor block.
+            virtual double GetMotorBlockInertia() const = 0;
+
+            /// Set inertia of the motorshaft (crankshaft + fly wheel).
+            virtual double GetMotorshaftInertia() const = 0;
+
+            /// Engine speed-torque map.
+            virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
+
+            /// Engine speed-torque braking effect because of losses.
+            virtual void SetEngineShuffleTorqueMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
             /// Set Idle Speed [rad/s]
             void SetIdleSpeed(double idle_speed) { m_idle_speed = idle_speed; }
             void SetMaxSpeed(double max_speed) { m_max_speed = max_speed; }
 
-        private:
+          private:
             /// Initialize this engine system.
             virtual void Initialize(std::shared_ptr<ChChassis> chassis) override;
 
@@ -58,8 +85,25 @@ namespace chrono {
                 double motorshaft_speed             ///< input transmission speed
             ) override;
 
+            /// Advance the state of this engine system by the specified time step.
+            /// Since the state of a EngineShafts is advanced as part of the vehicle state, this function does nothing.
+            virtual void Advance(double step) override {}
+
+            virtual void PopulateComponentList() override;
+
+            std::shared_ptr<ChShaft> m_motorblock;
+            std::shared_ptr<ChShaftBodyRotation> m_motorblock_to_body;
+            std::shared_ptr<ChShaftsTorque> m_engine;
+            std::shared_ptr<ChShaft> m_motorshaft;  ///< shaft connection to the transmission
+
+            ChVector3d m_dir_motor_block;
+
+
             double m_idle_speed = 0.0;  ///< The idle speed of the engine [rad/s]
             double m_max_speed = 0.0;  ///< The idle speed of the engine [rad/s]
+
+            std::shared_ptr<ChFunctionInterp> m_torque_func;  ///< torque as function of angular vel.
+            std::shared_ptr<ChFunctionInterp> m_shuffle_torque_func;  ///< shuffle torque as function of angular vel. Applied when engine is not driven by throttle input
         };
 
         /// @} vehicle_powertrain

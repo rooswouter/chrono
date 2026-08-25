@@ -32,16 +32,30 @@ namespace chrono {
         // ChShaftBodyRotation could transfer rolling torque to the chassis.
         // -----------------------------------------------------------------------------
         ChEngineShaftsAdvanced::ChEngineShaftsAdvanced(const std::string& name, const ChVector3d& dir_motor_block)
-            : ChEngineShafts(name, dir_motor_block)
+            : ChEngine(name), m_dir_motor_block(dir_motor_block)
         {
         }
 
         ChEngineShaftsAdvanced::~ChEngineShaftsAdvanced()
         {
-            
+            if (!IsInitialized())
+                return;
+
+            auto sys = m_engine->GetSystem();
+            if (!sys)
+                return;
+
+            sys->Remove(m_motorblock);
+            sys->Remove(m_motorblock_to_body);
+            sys->Remove(m_engine);
+            sys->Remove(m_motorshaft);
         }
 
-        
+        double ChEngineShaftsAdvanced::GetOutputMotorshaftTorque() const
+        {
+            return m_engine->GetReaction1();
+        }
+
         // -----------------------------------------------------------------------------
         void ChEngineShaftsAdvanced::Initialize(std::shared_ptr<ChChassis> chassis)
         {
@@ -69,34 +83,67 @@ namespace chrono {
 
             // Create a thermal engine model between motor block and motorshaft (both receive the torque, but with opposite
             // sign).
-            auto engine = chrono_types::make_shared<ChShaftsThermalEngineAdvanced>();
+            auto engine = chrono_types::make_shared<ChShaftsTorque>();
             m_engine = engine;
             m_engine->Initialize(m_motorshaft, m_motorblock);
             sys->Add(m_engine);
 
-            // The thermal engine requires a torque curve
-            auto mTw = chrono_types::make_shared<ChFunctionInterp>();
-            SetEngineTorqueMap(mTw);
-            m_engine->SetTorqueCurve(mTw);
-            engine->SetIdleSpeed(m_idle_speed);
-            engine->SetMaxSpeed(m_max_speed);
+            // The torque curve lives inside the ChEngineShaftAdvanced
+            m_torque_func = chrono_types::make_shared<ChFunctionInterp>();
+            SetEngineTorqueMap(m_torque_func);
 
-            // Create an engine brake model to model engine losses due to inner friction, turbulence, etc.
-            // Without this, the engine at 0% throttle in neutral position would rotate forever at constant speed.
-            m_engine_losses = chrono_types::make_shared<ChShaftsThermalEngine>();
-            m_engine_losses->Initialize(m_motorshaft, m_motorblock);
-            sys->Add(m_engine_losses);
 
-            // The engine brake model requires a torque curve
-            auto mTw_losses = chrono_types::make_shared<ChFunctionInterp>();
-            SetEngineLossesMap(mTw_losses);
-            m_engine_losses->SetTorqueCurve(mTw_losses);
+            // The shuffle torque curve lives inside the ChEngineShaftAdvanced
+            m_shuffle_torque_func = chrono_types::make_shared<ChFunctionInterp>();
+            SetEngineShuffleTorqueMap(m_shuffle_torque_func);
+
+
         }
 
         // -----------------------------------------------------------------------------
         void ChEngineShaftsAdvanced::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed)
         {
-            ChEngineShafts::Synchronize(time, driver_inputs, motorshaft_speed);
+            // Apply shaft speed
+            m_motorshaft->SetPosDt(motorshaft_speed);
+
+            // Update the throttle level in the thermal engine
+            //m_engine->SetThrottle(driver_inputs.m_throttle);
+
+            double mw = m_engine->GetRelativePosDt();
+            bool error_backward = false;
+            if (mw < 0)
+                error_backward = true;
+            else
+                error_backward = false;
+
+            // Control the engine speed to the desired speed based on the throttle position
+            double mw_desired = m_idle_speed + (m_max_speed - m_idle_speed) * driver_inputs.m_throttle;
+            double error = mw_desired - mw;
+
+            // Going faster then throttle position wants, use shuffle torque
+            double torque = 0.0;
+            if (error < 0.0) {
+                torque = m_shuffle_torque_func->GetVal(mw);
+            } else {
+                torque = m_torque_func->GetVal(mw);
+            }
+
+            // get max available torque at current RPM
+
+            // Crude P controller
+            double modulated_T = std::min(0.1 * error, 1.0);
+            modulated_T *= torque;
+            m_engine->SetTorque(torque);
+
+
+        }
+
+        void ChEngineShaftsAdvanced::PopulateComponentList()
+        {
+            m_components.shafts.push_back(m_motorblock);
+            m_components.shafts.push_back(m_motorshaft);
+
+            m_components.couples.push_back(m_engine);
         }
 
 

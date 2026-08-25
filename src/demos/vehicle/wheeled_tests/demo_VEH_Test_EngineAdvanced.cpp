@@ -68,7 +68,7 @@ double step_size = 2e-3;
 double t_end = 100;
 
 // Output
-bool output = false;
+bool output = true;
 
 enum class EngineTestsEnum
 {
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     // Create output directory
     // -----------------------
 
-    std::string out_dir = GetChronoOutputPath() + "ACCELERATION_TEST";
+    std::string out_dir = GetChronoOutputPath() + "ACCELERATION_ENGINEADVANCED";
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -236,6 +236,8 @@ int main(int argc, char* argv[]) {
     csv << "time";
     csv << "throttle";
     csv << "VehicleSpeed";
+    csv << "EngineRPM";
+    csv << "Engine Torque";
     csv << "CurrentTransmissionGear";
     csv << "Distance";
     csv << std::endl;
@@ -264,6 +266,8 @@ int main(int argc, char* argv[]) {
 
 
         double speed = speed_filter.Add(vehicle.GetSpeed());
+        double engine_speed = vehicle.GetEngine()->GetMotorSpeed();
+        double engine_torque = vehicle.GetEngine()->GetOutputMotorshaftTorque();
         double dist = terrainLength / 2.0 + vehicle.GetPos().x();
         int gear_pos = vehicle.GetTransmission()->GetCurrentGear();
 
@@ -349,6 +353,8 @@ int main(int argc, char* argv[]) {
                 csv << time;
                 csv << driver_inputs.m_throttle;
                 csv << 3.6 * speed;
+                csv << engine_speed * CH_RAD_S_TO_RPM;
+                csv << engine_torque;
                 csv << gear_pos;
                 csv << dist;
                 csv << std::endl;

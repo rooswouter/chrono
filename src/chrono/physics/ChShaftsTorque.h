@@ -39,7 +39,9 @@ class ChApi ChShaftsTorque : public ChShaftsCouple {
 
     /// Calculate applied torque.
     /// In most cases, this is the only function a derived class must implement. It will be called at each Update().
-    virtual double ComputeTorque() = 0;
+    virtual double ComputeTorque() { return torque; };
+
+    void SetTorque(double t) { torque = t; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

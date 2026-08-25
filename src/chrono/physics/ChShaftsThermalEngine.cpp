@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Wouter Roos
 // =============================================================================
 
 #include "chrono/physics/ChShaft.h"

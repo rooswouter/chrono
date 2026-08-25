@@ -62,7 +62,7 @@ namespace chrono {
             m_engine_torque.Set(*map, CH_RPM_TO_RAD_S, 1.0);
         }
 
-        void EngineShaftsAdvanced::SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map)
+        void EngineShaftsAdvanced::SetEngineShuffleTorqueMap(std::shared_ptr<ChFunctionInterp>& map)
         {
             m_engine_losses.Set(*map, CH_RPM_TO_RAD_S, 1.0);
         }
