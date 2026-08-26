@@ -89,14 +89,11 @@ namespace chrono {
             sys->Add(m_engine);
 
             // The torque curve lives inside the ChEngineShaftAdvanced
-            m_torque_func = chrono_types::make_shared<ChFunctionInterp>();
+            m_torque_func = chrono_types::make_shared<ChFunctionInterp2D>();
             SetEngineTorqueMap(m_torque_func);
 
 
-            // The shuffle torque curve lives inside the ChEngineShaftAdvanced
-            m_shuffle_torque_func = chrono_types::make_shared<ChFunctionInterp>();
-            SetEngineShuffleTorqueMap(m_shuffle_torque_func);
-
+           
 
         }
 
@@ -116,38 +113,13 @@ namespace chrono {
             else
                 error_backward = false;
             
-            double torque = 0.0;
-
-#if 1
-            // Throttle controls target speed of the engine
-            // Control the engine speed to the desired speed based on the throttle position
-            double throttle = driver_inputs.m_throttle;
-            throttle = m_old_throttle + (throttle - m_old_throttle) * m_throttle_lag;
-            m_old_throttle = throttle;
-            throttle = std::clamp(throttle, 0.0, 1.0);
-            double mw_desired = m_idle_speed + (m_max_speed - m_idle_speed) * throttle;
-            double error = mw_desired - mw;
-
-            // Going faster then throttle position wants, use shuffle torque
-
-            if (error < 0.0) {
-                torque = m_shuffle_torque_func->GetVal(mw);
-            } else {
-                torque = m_torque_func->GetVal(mw);
+            double torque = m_torque_func->GetVal(driver_inputs.m_throttle, mw);
+            // Do not overrev the engine
+            if (mw > m_max_speed) {
+                torque = std::min(torque, 0.0);
+            } else if (mw < m_idle_speed) {
+                torque = m_torque_func->GetVal(0.2, mw);
             }
-
-            // get max available torque at current RPM
-
-            // Crude P controller
-            double modulated_T = std::min(0.1 * error, 1.0);
-            torque *= modulated_T;
-#else
-            // Throttle controls torque
-
-            torque = m_torque_func->GetVal(mw) ;
-            torque *= driver_inputs.m_throttle;
-            torque += m_shuffle_torque_func->GetVal(mw);
-#endif
             m_engine->SetTorque(torque);
 
         }

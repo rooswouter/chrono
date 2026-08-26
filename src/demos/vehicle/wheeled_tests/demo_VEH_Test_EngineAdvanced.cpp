@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 
     EngineTestsEnum test_mode = (EngineTestsEnum)(which - 1);
     // auto select ram (13)
-    auto vehicle_model = models[13].first;
+    auto vehicle_model = models[0].first;
 
     // Create the vehicle system
     WheeledVehicle vehicle(GetVehicleDataFile(vehicle_model->VehicleJSON()), ChContactMethod::SMC);

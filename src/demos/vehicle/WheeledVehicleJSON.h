@@ -65,7 +65,7 @@ class HMMWV_Model : public WheeledVehicleJSON {
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }
     virtual std::string TireJSON(unsigned int axle) const override {
-        return "hmmwv/tire/HMMWV_RigidTire.json";
+        ////return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
         return "hmmwv/tire/HMMWV_TMeasyTire.json";
         ////return "hmmwv/tire/HMMWV_TMsimpleTire.json";
@@ -73,7 +73,7 @@ class HMMWV_Model : public WheeledVehicleJSON {
         ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override {
-        return "hmmwv/powertrain/HMMWV_EngineShafts.json";
+        return "hmmwv/powertrain/HMMWV_EngineShaftsAdvanced.json";
         ////return "hmmwv/powertrain/HMMWV_EngineSimpleMap.json";
         ////return "hmmwv/powertrain/HMMWV_EngineSimple.json";
     }

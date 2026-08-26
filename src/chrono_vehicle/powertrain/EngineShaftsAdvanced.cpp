@@ -51,20 +51,14 @@ namespace chrono {
             m_motorblock_inertia = d["Motor Block Inertia"].GetDouble();
             m_motorshaft_inertia = d["Motorshaft Inertia"].GetDouble();
             m_engine_torque.Read(d["Torque Map"]);
-            m_engine_losses.Read(d["Losses Map"]);
 
             SetIdleSpeed(CH_RPM_TO_RAD_S * d["Idle Speed"].GetDouble());
             SetMaxSpeed(CH_RPM_TO_RAD_S * d["Max Speed"].GetDouble());
         }
 
-        void EngineShaftsAdvanced::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map)
+        void EngineShaftsAdvanced::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp2D>& map)
         {
-            m_engine_torque.Set(*map, CH_RPM_TO_RAD_S, 1.0);
-        }
-
-        void EngineShaftsAdvanced::SetEngineShuffleTorqueMap(std::shared_ptr<ChFunctionInterp>& map)
-        {
-            m_engine_losses.Set(*map, CH_RPM_TO_RAD_S, 1.0);
+            m_engine_torque.Set(*map, 1.0, CH_RPM_TO_RAD_S, 1.0);
         }
 
     }  // end namespace vehicle

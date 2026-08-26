@@ -65,10 +65,8 @@ namespace chrono {
             virtual double GetMotorshaftInertia() const = 0;
 
             /// Engine speed-torque map.
-            virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
+            virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp2D>& map) = 0;
 
-            /// Engine speed-torque braking effect because of losses.
-            virtual void SetEngineShuffleTorqueMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
             /// Set Idle Speed [rad/s]
             void SetIdleSpeed(double idle_speed) { m_idle_speed = idle_speed; }
@@ -105,8 +103,7 @@ namespace chrono {
             double m_old_throttle = 0.0;
             double m_throttle_lag = 0.01;
 
-            std::shared_ptr<ChFunctionInterp> m_torque_func;  ///< torque as function of angular vel.
-            std::shared_ptr<ChFunctionInterp> m_shuffle_torque_func;  ///< shuffle torque as function of angular vel. Applied when engine is not driven by throttle input
+            std::shared_ptr<ChFunctionInterp2D> m_torque_func;  ///< Torque as a function of throttle (x) and engine speed (y)
         };
 
         /// @} vehicle_powertrain

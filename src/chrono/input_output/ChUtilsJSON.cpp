@@ -585,4 +585,35 @@ void ChMapData::Set(std::vector<std::pair<double, double>>& vec, double x_factor
     }
 }
 
+// -----------------------------------------------------------------------------
+
+void ChMap2DData::Read(const rapidjson::Value& a) {
+    assert(a.IsArray());
+
+    for (unsigned int i = 0; i < a.Size(); i++) {
+        double x = a[i][0u].GetDouble();
+        assert(a[i][1u].IsArray());
+
+        std::vector<std::pair<double, double>> table;
+        //unsigned int x_size = a[i][1u].Size();
+        for (unsigned int j = 0; j < a[i][1u].Size(); j++) {
+            table.push_back(std::make_pair(a[i][1u][j][0u].GetDouble(), a[i][1u][j][1u].GetDouble()));
+        }
+        m_data.insert(std::make_pair(x, table));
+    }
+}
+
+void ChMap2DData::Set(ChFunctionInterp2D& map, double x_factor, double y_factor, double z_factor) const {
+    for (auto it = m_data.begin(); it != m_data.end(); ++it) {
+        for (unsigned int i = 0; i < it->second.size(); i++) {
+            map.AddPoint(x_factor * it->first, y_factor * it->second[i].first, z_factor * it->second[i].second);
+        }
+    }
+}
+
+void ChMap2DData::Set(std::map<double, std::vector<std::pair<double, double>>>& map, double x_factor, double y_factor, double z_factor) const {
+    for (auto it = m_data.begin(); it != m_data.end(); ++it) {
+        map.insert(std::make_pair(it->first, it->second));
+    }
+}
 }  // end namespace chrono

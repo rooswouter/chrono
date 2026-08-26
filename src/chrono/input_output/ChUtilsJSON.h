@@ -121,6 +121,27 @@ class ChApi ChMapData {
     std::vector<double> m_y;
 };
 
+/// Utility class for reading and setting an (x,y,z) map.
+class ChApi ChMap2DData {
+  public:
+    /// Construct a ChMapData with an empty map.
+    ChMap2DData()  {}
+
+    /// Read data from the specified JSON object.
+    void Read(const rapidjson::Value& a);
+
+    /// Set the map data to the specified recorder function.
+    /// The map data is scaled by the specified factors.
+    void Set(ChFunctionInterp2D& map, double x_factor = 1, double y_factor = 1, double z_factor = 1) const;
+
+    /// Set the map data to the specified vector of pairs.
+    /// The map data is scaled by the specified factors.
+    void Set(std::map<double, std::vector<std::pair<double, double>>>& map, double x_factor = 1, double y_factor = 1, double z_factor = 1) const;
+
+  private:
+    std::map<double, std::vector<std::pair<double, double>>> m_data;
+};
+
 /// @} chrono_io
 
 }  // end namespace chrono

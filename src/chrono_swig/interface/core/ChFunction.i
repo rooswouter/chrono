@@ -14,6 +14,7 @@
 #include "chrono/functions/ChFunctionPoly345.h"
 #include "chrono/functions/ChFunctionRamp.h"
 #include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionInterp2D.h"
 #include "chrono/functions/ChFunctionRepeat.h"
 #include "chrono/functions/ChFunctionSequence.h"
 #include "chrono/functions/ChFunctionPoly23.h"
@@ -104,6 +105,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %shared_ptr(chrono::ChFunctionPoly345)
 %shared_ptr(chrono::ChFunctionRamp)
 %shared_ptr(chrono::ChFunctionInterp)
+%shared_ptr(chrono::ChFunctionInterp2D)
 %shared_ptr(chrono::ChFunctionRepeat)
 %shared_ptr(chrono::ChFunctionSequence)
 %shared_ptr(chrono::ChFunctionPoly23)
@@ -157,6 +159,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %include "../../../chrono/functions/ChFunctionFillet3.h"
 %include "../../../chrono/functions/ChFunctionIntegral.h"
 %include "../../../chrono/functions/ChFunctionInterp.h"
+%include "../../../chrono/functions/ChFunctionInterp2D.h"
 %include "../../../chrono/functions/ChFunctionMirror.h"
 %include "../../../chrono/functions/ChFunctionOperator.h"
 %include "../../../chrono/functions/ChFunctionPoly.h"

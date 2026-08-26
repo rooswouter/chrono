@@ -41,8 +41,7 @@ namespace chrono {
             virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
             virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
 
-            virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) override;
-            virtual void SetEngineShuffleTorqueMap(std::shared_ptr<ChFunctionInterp>& map) override;
+            virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp2D>& map) override;
 
         private:
             virtual void Create(const rapidjson::Document& d) override;
@@ -50,8 +49,7 @@ namespace chrono {
             double m_motorblock_inertia;
             double m_motorshaft_inertia;
 
-            ChMapData m_engine_torque;
-            ChMapData m_engine_losses;
+            ChMap2DData m_engine_torque;
         };
 
         /// @} vehicle_powertrain

@@ -17,10 +17,12 @@
 // =============================================================================
 
 #include <cmath>
+#include <stdexcept>
 
 #include "gtest/gtest.h"
 #include "chrono/functions/ChFunctionLambda.h"
 #include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionInterp2D.h"
 #include "chrono/utils/ChConstants.h"
 
 using namespace chrono;
@@ -109,3 +111,96 @@ TEST(ChFunctionInterp, interp1_extrap) {
 //    fun_table_ovr.AddPoint(0.0, 2.7);
 //    EXPECT_NO_THROW(fun_table_ovr.AddPoint(0.0, 0.3, true));
 //}
+
+namespace {
+
+void AddBilinearPatch(ChFunctionInterp2D& fun) {
+    // z = 1 + 2 x + 3 y + 4 x y on x in {0, 1}, y in {0, 2}
+    fun.AddPoint(0.0, 0.0, 1.0);
+    fun.AddPoint(1.0, 0.0, 3.0);
+    fun.AddPoint(0.0, 2.0, 7.0);
+    fun.AddPoint(1.0, 2.0, 17.0);
+}
+
+}  // namespace
+
+TEST(ChFunctionInterp2D, nodes_and_interior) {
+    ChFunctionInterp2D fun;
+    AddBilinearPatch(fun);
+
+    ASSERT_NEAR(fun.GetVal(0.0, 0.0), 1.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(1.0, 0.0), 3.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(0.0, 2.0), 7.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(1.0, 2.0), 17.0, TOL_FUN);
+
+    // z(0.25, 0.5) = 1 + 2*0.25 + 3*0.5 + 4*0.25*0.5 = 3.5
+    ASSERT_NEAR(fun.GetVal(0.25, 0.5), 3.5, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerX(0.25, 0.5), 4.0, TOL_FUN);  // 2 + 4 y
+    ASSERT_NEAR(fun.GetDerY(0.25, 0.5), 4.0, TOL_FUN);  // 3 + 4 x
+
+    ASSERT_NEAR(fun.GetStartX(), 0.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetEndX(), 1.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetStartY(), 0.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetEndY(), 2.0, TOL_FUN);
+}
+
+TEST(ChFunctionInterp2D, clamp) {
+    ChFunctionInterp2D fun;
+    AddBilinearPatch(fun);
+
+    // Hold x = 0: z(0, 0.5) = 1 + 3*0.5 = 2.5
+    ASSERT_NEAR(fun.GetVal(-1.0, 0.5), 2.5, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerX(-1.0, 0.5), 0.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerY(-1.0, 0.5), 3.0, TOL_FUN);
+
+    // Hold y = 2: z(0.25, 2) = 1 + 2*0.25 + 6 + 4*0.25*2 = 9.5
+    ASSERT_NEAR(fun.GetVal(0.25, 5.0), 9.5, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerY(0.25, 5.0), 0.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerX(0.25, 5.0), 10.0, TOL_FUN);  // 2 + 4*2
+
+    // Corner clamp
+    ASSERT_NEAR(fun.GetVal(-2.0, -3.0), 1.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(4.0, 8.0), 17.0, TOL_FUN);
+}
+
+TEST(ChFunctionInterp2D, extrap) {
+    ChFunctionInterp2D fun;
+    fun.SetExtrapolate(true);
+    AddBilinearPatch(fun);
+
+    // z(-1, 0.5) = 1 + 2*(-1) + 3*0.5 + 4*(-1)*0.5 = -1.5
+    ASSERT_NEAR(fun.GetVal(-1.0, 0.5), -1.5, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerX(-1.0, 0.5), 4.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerY(-1.0, 0.5), -1.0, TOL_FUN);  // 3 + 4*(-1)
+}
+
+TEST(ChFunctionInterp2D, incomplete_grid) {
+    ChFunctionInterp2D fun;
+    fun.AddPoint(0.0, 0.0, 1.0);
+    fun.AddPoint(1.0, 0.0, 3.0);
+    fun.AddPoint(0.0, 2.0, 7.0);
+
+    EXPECT_THROW(fun.GetVal(0.5, 1.0), std::invalid_argument);
+}
+
+TEST(ChFunctionInterp2D, duplicate_point) {
+    ChFunctionInterp2D fun;
+    fun.AddPoint(0.0, 0.0, 1.0);
+    EXPECT_THROW(fun.AddPoint(0.0, 0.0, 2.0), std::invalid_argument);
+    EXPECT_NO_THROW(fun.AddPoint(0.0, 0.0, 2.0, true));
+    ASSERT_NEAR(fun.GetVal(0.0, 0.0), 2.0, TOL_FUN);
+}
+
+TEST(ChFunctionInterp2D, degenerate_1d) {
+    ChFunctionInterp2D fun;
+    fun.AddPoint(0.0, 0.0, 0.0);
+    fun.AddPoint(2.0, 0.0, 4.0);
+
+    ASSERT_NEAR(fun.GetVal(1.0, 0.0), 2.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(-1.0, 0.0), 0.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerX(1.0, 0.0), 2.0, TOL_FUN);
+    ASSERT_NEAR(fun.GetDerY(1.0, 0.0), 0.0, TOL_FUN);
+
+    fun.SetExtrapolate(true);
+    ASSERT_NEAR(fun.GetVal(-1.0, 0.0), -2.0, TOL_FUN);
+}
