@@ -23,6 +23,7 @@
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/core/ChTimer.h"
 
+#include "chrono_vehicle/powertrain/ChEngineShaftsAdvanced.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -381,10 +382,9 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-DriverInputs GetDriverInputs(EngineTestsEnum test_mode, WheeledVehicle& vehicle, double time)
-{
-    DriverInputs driver_inputs;
 
+
+void GetDriverInputsStep(DriverInputs &driver_inputs, WheeledVehicle& vehicle, double time) {
     // 25% steps, 2 seconds each
 
     driver_inputs.m_steering = 0.0;
@@ -395,5 +395,43 @@ DriverInputs GetDriverInputs(EngineTestsEnum test_mode, WheeledVehicle& vehicle,
     driver_inputs.m_clutch = 0.0;
 
     vehicle.GetTransmission()->SetGear(0);
+}
+
+void GetDriverInputsThrottle(double throttle, DriverInputs& driver_inputs, WheeledVehicle& vehicle, double time) {
+    driver_inputs.m_steering = 0.0;
+    driver_inputs.m_throttle = throttle;
+    driver_inputs.m_braking = 0.0;
+    driver_inputs.m_clutch = 0.0;
+
+    //vehicle.GetTransmission()->SetGear(1);
+}
+
+DriverInputs GetDriverInputs(EngineTestsEnum test_mode, WheeledVehicle& vehicle, double time) {
+    DriverInputs driver_inputs;
+    
+    auto engineAdvanced = std::dynamic_pointer_cast<ChEngineShaftsAdvanced>(vehicle.GetEngine());
+
+    // Start engine first
+    if (engineAdvanced->GetEngineState() != EngineState::RUNNING)
+    {
+        driver_inputs.ignition = IgnitionState::START;
+        return driver_inputs;
+    }
+    driver_inputs.ignition = IgnitionState::ON;
+
+    switch (test_mode) { 
+        case EngineTestsEnum::ThrottleStepsNeutral:
+            GetDriverInputsStep(driver_inputs, vehicle, time);
+            break;
+        case EngineTestsEnum::Throttle25:
+            GetDriverInputsThrottle(0.25, driver_inputs, vehicle, time);
+            break;
+        case EngineTestsEnum::Throttle50:
+            GetDriverInputsThrottle(0.5, driver_inputs, vehicle, time);
+            break;
+        case EngineTestsEnum::Throttle100:
+            GetDriverInputsThrottle(1.0, driver_inputs, vehicle, time);
+            break;
+    }
     return driver_inputs;
 }

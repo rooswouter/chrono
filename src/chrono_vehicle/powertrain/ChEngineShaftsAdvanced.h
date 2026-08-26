@@ -31,12 +31,22 @@
 #include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
 
+
 namespace chrono {
     namespace vehicle {
+
+
 
         /// @addtogroup vehicle_powertrain
         /// @{
 
+        enum class EngineState {
+            OFF,
+            STARTING,
+            RUNNING,
+            STALLED,
+            DAMAGED
+        };
         /// Advanced engine model based on the template ChEngine class
         class CH_VEHICLE_API ChEngineShaftsAdvanced : public ChEngine
         {
@@ -68,6 +78,8 @@ namespace chrono {
             virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp2D>& map) = 0;
 
 
+            virtual EngineState GetEngineState() const { return m_state; }
+
             /// Set Idle Speed [rad/s]
             void SetIdleSpeed(double idle_speed) { m_idle_speed = idle_speed; }
             void SetMaxSpeed(double max_speed) { m_max_speed = max_speed; }
@@ -89,6 +101,12 @@ namespace chrono {
 
             virtual void PopulateComponentList() override;
 
+            virtual void UpdateEngineState(const DriverInputs& driver_inputs, double engine_speed);
+
+            virtual double CalculateTorqueOff(double time, const DriverInputs& driver_inputs, double engine_speed);
+            virtual double CalculateTorqueRunning(double time, const DriverInputs& driver_inputs, double engine_speed);
+            virtual double CalculateTorqueStarting(double time, const DriverInputs& driver_inputs, double engine_speed);
+
             std::shared_ptr<ChShaft> m_motorblock;
             std::shared_ptr<ChShaftBodyRotation> m_motorblock_to_body;
             std::shared_ptr<ChShaftsTorque> m_engine;
@@ -97,13 +115,16 @@ namespace chrono {
             ChVector3d m_dir_motor_block;
 
 
-            double m_idle_speed = 0.0;  ///< The idle speed of the engine [rad/s]
-            double m_max_speed = 0.0;  ///< The idle speed of the engine [rad/s]
+            double m_idle_speed = 0.0;      ///< The idle speed of the engine [rad/s]
+            double m_max_speed = 0.0;       ///< The idle speed of the engine [rad/s]
+            double m_stall_speed = -1.0;    ///< The stall speed of the engine [rad/s]. If negative, engine won't stall
 
             double m_old_throttle = 0.0;
             double m_throttle_lag = 0.01;
 
             std::shared_ptr<ChFunctionInterp2D> m_torque_func;  ///< Torque as a function of throttle (x) and engine speed (y)
+
+            EngineState m_state = EngineState::OFF;
         };
 
         /// @} vehicle_powertrain

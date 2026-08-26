@@ -99,29 +99,67 @@ namespace chrono {
 
         // -----------------------------------------------------------------------------
         void ChEngineShaftsAdvanced::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed)
-        {
+        { 
             // Apply shaft speed
             m_motorshaft->SetPosDt(motorshaft_speed);
 
-            // Update the throttle level in the thermal engine
-            //m_engine->SetThrottle(driver_inputs.m_throttle);
-
+            
             double mw = m_engine->GetRelativePosDt();
             bool error_backward = false;
             if (mw < 0)
                 error_backward = true;
             else
                 error_backward = false;
-            
-            double torque = m_torque_func->GetVal(driver_inputs.m_throttle, mw);
-            // Do not overrev the engine
-            if (mw > m_max_speed) {
-                torque = std::min(torque, 0.0);
-            } else if (mw < m_idle_speed) {
-                torque = m_torque_func->GetVal(0.2, mw);
+
+            UpdateEngineState(driver_inputs, mw);
+
+            double torque = 0.0;
+            switch (m_state) 
+            { 
+                case EngineState::OFF:
+                case EngineState::STALLED:
+                    torque = CalculateTorqueOff(time, driver_inputs, mw);
+                    break;
+                case EngineState::RUNNING:
+                    torque = CalculateTorqueRunning(time, driver_inputs, mw);
+                    break;
+                case EngineState::STARTING:
+                    torque = CalculateTorqueStarting(time, driver_inputs, mw);
+                    break;
             }
             m_engine->SetTorque(torque);
+        }
 
+        double ChEngineShaftsAdvanced::CalculateTorqueOff(double time, const DriverInputs& driver_inputs, double engine_speed)
+        {
+            // @todo control speed to 0.0?
+            return 0.0;
+        }
+
+        double ChEngineShaftsAdvanced::CalculateTorqueRunning(double time, const DriverInputs& driver_inputs, double engine_speed)
+        {
+            if (m_stall_speed > 0.0 && engine_speed < m_stall_speed) {
+                m_state = EngineState::STALLED;
+               
+            }
+
+            double torque = m_torque_func->GetVal(driver_inputs.m_throttle, engine_speed);
+            // Do not overrev the engine
+            if (engine_speed > m_max_speed) {
+                torque = std::min(torque, 0.0);
+            } else if (engine_speed < m_idle_speed) {
+                torque = m_torque_func->GetVal(0.2, engine_speed);
+            }
+            return torque;
+        }
+
+        double ChEngineShaftsAdvanced::CalculateTorqueStarting(double time, const DriverInputs& driver_inputs, double engine_speed)
+        {
+            // Control to idle speed, if we reach idle speed, set state to Running
+            if (engine_speed > m_idle_speed) {
+                m_state = EngineState::RUNNING;
+            }
+            return m_torque_func->GetVal(0.2, engine_speed);
         }
 
         void ChEngineShaftsAdvanced::PopulateComponentList()
@@ -133,6 +171,50 @@ namespace chrono {
         }
 
 
+        void ChEngineShaftsAdvanced::UpdateEngineState(const DriverInputs& driver_inputs, double engine_speed)
+        {
+            switch (driver_inputs.ignition) { 
+                case IgnitionState::OFF:
+                    m_state = EngineState::OFF;
+                    break;
+
+                case IgnitionState::ACCESSORIES:
+                    // Ignore for now, should enable power to vehicle systems
+                    break;
+                case IgnitionState::ON:
+                    switch (m_state) {
+                        case EngineState::STARTING:
+                            m_state = EngineState::RUNNING;
+                            break;
+                        case EngineState::OFF:
+                        case EngineState::STALLED:
+                        case EngineState::DAMAGED:
+                        case EngineState::RUNNING:
+                        default:
+                            break;
+                    }
+                    break;
+                case IgnitionState::START:
+                    switch (m_state) {
+                        case EngineState::OFF:
+                            m_state = EngineState::STARTING;
+                            break;
+                        case EngineState::RUNNING:
+                            // Make starter motor noise?
+                            break;
+                        case EngineState::STARTING:
+                        case EngineState::STALLED:
+                        case EngineState::DAMAGED:
+                        default:
+                            break;
+                    }
+                    break;
+
+            }
+
+
+
+        }
 
     }  // end namespace vehicle
 }  // end namespace chrono
