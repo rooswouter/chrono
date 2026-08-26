@@ -408,16 +408,22 @@ void GetDriverInputsThrottle(double throttle, DriverInputs& driver_inputs, Wheel
 
 DriverInputs GetDriverInputs(EngineTestsEnum test_mode, WheeledVehicle& vehicle, double time) {
     DriverInputs driver_inputs;
-    
-    auto engineAdvanced = std::dynamic_pointer_cast<ChEngineShaftsAdvanced>(vehicle.GetEngine());
+    driver_inputs.m_steering = 0.0;
+    driver_inputs.m_throttle = 0.0;
+    driver_inputs.m_braking = 0.0;
+    driver_inputs.m_clutch = 0.0;
 
+    auto engineAdvanced = std::dynamic_pointer_cast<ChEngineShaftsAdvanced>(vehicle.GetEngine());
+    if (time < 0.5) {
+        return driver_inputs;
+    }
     // Start engine first
     if (engineAdvanced->GetEngineState() != EngineState::RUNNING)
     {
-        driver_inputs.ignition = IgnitionState::START;
+        driver_inputs.m_ignition = IgnitionState::START;
         return driver_inputs;
     }
-    driver_inputs.ignition = IgnitionState::ON;
+    driver_inputs.m_ignition = IgnitionState::ON;
 
     switch (test_mode) { 
         case EngineTestsEnum::ThrottleStepsNeutral:

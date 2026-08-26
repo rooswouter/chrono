@@ -173,7 +173,7 @@ namespace chrono {
 
         void ChEngineShaftsAdvanced::UpdateEngineState(const DriverInputs& driver_inputs, double engine_speed)
         {
-            switch (driver_inputs.ignition) { 
+            switch (driver_inputs.m_ignition) { 
                 case IgnitionState::OFF:
                     m_state = EngineState::OFF;
                     break;

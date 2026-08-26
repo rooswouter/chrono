@@ -92,14 +92,14 @@ enum class IgnitionState { OFF, ACCESSORIES, ON, START };
 
 /// Driver (vehicle control) inputs.
 struct DriverInputs {
-    double m_steering;  ///< steering input [-1, +1]
-    double m_throttle;  ///< throttle input [0, 1]
-    double m_braking;   ///< braking input [0, 1]
-    double m_clutch;    ///< clutch input [0, 1]
+    double m_steering = 0.0;  ///< steering input [-1, +1]
+    double m_throttle = 0.0;  ///< throttle input [0, 1]
+    double m_braking = 0.0;   ///< braking input [0, 1]
+    double m_clutch = 0.0;    ///< clutch input [0, 1]
 
     // Extended inputs
-    int gear = 0;
-    IgnitionState ignition = IgnitionState::OFF;
+    int m_gear = 0;
+    IgnitionState m_ignition = IgnitionState::OFF;
 };
 
 // -----------------------------------------------------------------------------
