@@ -18,7 +18,7 @@
 
 #include "chrono/core/ChDataPath.h"
 
-#include "chrono_vehicle/powertrain/EngineShaftsAdvanced.h"
+#include "chrono_vehicle/advanced_systems/EngineShaftsAdvanced.h"
 
 using namespace rapidjson;
 

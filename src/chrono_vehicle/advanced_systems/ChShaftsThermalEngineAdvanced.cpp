@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChShaft.h"
-#include "chrono_vehicle/powertrain/ChShaftsThermalEngineAdvanced.h"
+#include "chrono_vehicle/advanced_systems/ChShaftsThermalEngineAdvanced.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {

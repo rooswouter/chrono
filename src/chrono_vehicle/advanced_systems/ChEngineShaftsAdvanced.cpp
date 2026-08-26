@@ -20,8 +20,8 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_vehicle/powertrain/ChShaftsThermalEngineAdvanced.h"
-#include "chrono_vehicle/powertrain/EngineShaftsAdvanced.h"
+#include "chrono_vehicle/advanced_systems/ChShaftsThermalEngineAdvanced.h"
+#include "chrono_vehicle/advanced_systems/EngineShaftsAdvanced.h"
 
 namespace chrono {
     namespace vehicle {

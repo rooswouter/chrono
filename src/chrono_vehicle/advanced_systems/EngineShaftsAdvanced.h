@@ -22,7 +22,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
-#include "chrono_vehicle/powertrain/ChEngineShaftsAdvanced.h"
+#include "chrono_vehicle/advanced_systems/ChEngineShaftsAdvanced.h"
 
 namespace chrono {
     namespace vehicle {

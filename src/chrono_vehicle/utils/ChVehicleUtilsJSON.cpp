@@ -17,8 +17,9 @@
 // =============================================================================
 
 #include <fstream>
-#include <vector>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "chrono/utils/ChForceFunctors.h"
 
@@ -34,7 +35,6 @@
 #include "chrono_vehicle/powertrain/EngineSimple.h"
 #include "chrono_vehicle/powertrain/EngineSimpleMap.h"
 #include "chrono_vehicle/powertrain/EngineShafts.h"
-#include "chrono_vehicle/powertrain/EngineShaftsAdvanced.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleCVT.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
@@ -112,6 +112,25 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
+
+namespace {
+
+std::unordered_map<std::string, EngineJSONFactory>& GetEngineJSONFactories() {
+    static std::unordered_map<std::string, EngineJSONFactory> factories;
+    return factories;
+}
+
+}  // namespace
+
+// -----------------------------------------------------------------------------
+
+void RegisterEngineJSONFactory(const std::string& template_name, EngineJSONFactory factory) {
+    GetEngineJSONFactories()[template_name] = std::move(factory);
+}
+
+void UnregisterEngineJSONFactory(const std::string& template_name) {
+    GetEngineJSONFactories().erase(template_name);
+}
 
 // -----------------------------------------------------------------------------
 
@@ -219,15 +238,20 @@ std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename) {
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
 
-    // Create the engine using the appropriate template.
+    // Prefer a user-registered factory for this template name.
+    const auto& factories = GetEngineJSONFactories();
+    auto factory_it = factories.find(subtype);
+    if (factory_it != factories.end()) {
+        return factory_it->second(d);
+    }
+
+    // Create the engine using the appropriate built-in template.
     if (subtype.compare("EngineSimple") == 0) {
         engine = chrono_types::make_shared<EngineSimple>(d);
     } else if (subtype.compare("EngineSimpleMap") == 0) {
         engine = chrono_types::make_shared<EngineSimpleMap>(d);
     } else if (subtype.compare("EngineShafts") == 0) {
         engine = chrono_types::make_shared<EngineShafts>(d);
-    } else if (subtype.compare("EngineShaftsAdvanced") == 0) {
-        engine = chrono_types::make_shared<EngineShaftsAdvanced>(d);
     } else {
         throw std::invalid_argument("Engine type not supported in ReadEngineJSON.");
     }

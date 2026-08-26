@@ -19,6 +19,8 @@
 #ifndef CH_JSON_UTILS_H
 #define CH_JSON_UTILS_H
 
+#include <functional>
+#include <string>
 #include <vector>
 
 #include "chrono/input_output/ChUtilsJSON.h"
@@ -45,6 +47,19 @@
 namespace chrono {
 namespace vehicle {
 
+// -----------------------------------------------------------------------------
+
+/// Factory function type used to create an engine from a parsed JSON document.
+/// The document already corresponds to a valid engine specification file.
+using EngineJSONFactory = std::function<std::shared_ptr<ChEngine>(const rapidjson::Document& d)>;
+
+/// Register a factory function for an engine JSON template name.
+/// If a factory is already registered for the given template name, it is replaced.
+/// Registered factories are consulted by ReadEngineJSON before the built-in templates.
+CH_VEHICLE_API void RegisterEngineJSONFactory(const std::string& template_name, EngineJSONFactory factory);
+
+/// Unregister a previously registered engine JSON factory (no-op if not registered).
+CH_VEHICLE_API void UnregisterEngineJSONFactory(const std::string& template_name);
 
 // -----------------------------------------------------------------------------
 

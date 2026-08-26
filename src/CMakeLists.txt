@@ -541,6 +541,8 @@ add_subdirectory(chrono_ros)
 add_subdirectory(chrono_swig)
 add_subdirectory(chrono_precice)
 
+add_subdirectory(chrono_vehicle/advanced_systems)
+
 # Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)
   add_subdirectory(demos)
@@ -685,6 +687,12 @@ if(CH_ENABLE_MODULE_VEHICLE)
   set(CHRONO_VEHICLE "#define CHRONO_VEHICLE")
 else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE_ADVANCED_SYSTEMS)
+  set(CHRONO_VEHICLE_ADVANCED_SYSTEMS "#define CHRONO_VEHICLE_ADVANCED_SYSTEMS")
+else()
+  set(CHRONO_VEHICLE_ADVANCED_SYSTEMS "#undef CHRONO_VEHICLE_ADVANCED_SYSTEMS")
 endif()
 
 if(CH_ENABLE_MODULE_FSI)
