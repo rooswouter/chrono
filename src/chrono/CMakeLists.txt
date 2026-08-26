@@ -1059,6 +1059,7 @@ set(Chrono_functions_SOURCES
     functions/ChFunctionFillet3.cpp
     functions/ChFunctionIntegral.cpp
     functions/ChFunctionInterp.cpp
+    functions/ChFunctionInterp2D.cpp
     functions/ChFunctionMirror.cpp
     functions/ChFunctionOperator.cpp
     functions/ChFunctionPoly.cpp
@@ -1093,6 +1094,7 @@ set(Chrono_functions_HEADERS
     functions/ChFunctionFillet3.h
     functions/ChFunctionIntegral.h
     functions/ChFunctionInterp.h
+    functions/ChFunctionInterp2D.h
     functions/ChFunctionLambda.h
     functions/ChFunctionMirror.h
     functions/ChFunctionOperator.h
