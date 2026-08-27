@@ -14,6 +14,8 @@ endif()
 install(FILES ChApiModels.h DESTINATION include/chrono_vehicle/advanced_systems)
 
 set(CV_VEHICLE_ADVANCED_SYSTEM_FILES
+    ChUtilsAdvancedSystems.cpp
+    ChUtilsAdvancedSystems.h
     ChEngineShaftsAdvanced.cpp
     ChEngineShaftsAdvanced.h
     EngineShaftsAdvanced.cpp

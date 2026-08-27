@@ -23,7 +23,8 @@
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/core/ChTimer.h"
 
-#include "chrono_vehicle/powertrain/ChEngineShaftsAdvanced.h"
+#include "chrono_vehicle/advanced_systems/ChUtilsAdvancedSystems.h"
+#include "chrono_vehicle/advanced_systems/ChEngineShaftsAdvanced.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -112,6 +113,9 @@ int main(int argc, char* argv[]) {
     EngineTestsEnum test_mode = (EngineTestsEnum)(which - 1);
     // auto select ram (13)
     auto vehicle_model = models[0].first;
+
+    // Register factories first
+    RegisterAdvancedSystems();
 
     // Create the vehicle system
     WheeledVehicle vehicle(GetVehicleDataFile(vehicle_model->VehicleJSON()), ChContactMethod::SMC);

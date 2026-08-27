@@ -1,36 +1,19 @@
 #=============================================================================
-# CMake configuration file for the ISO2631 demos.
+# CMake configuration file for the Advanced Systems demos.
 #=============================================================================
 
 #--------------------------------------------------------------
-# List all ISO2631 demos
+# List all Advanced Systems demos
 
 set(DEMOS
-    demo_VEH_Test_ISO2631_Ride
-    demo_VEH_Test_ISO2631_Shock
-    demo_VEH_Test_Accel
-    demo_VEH_Test_FMTV_Ride
+    demo_VEH_Test_AdvancedSystems
 )
-
-if(CH_ENABLE_MODULE_FEA)
-   set(DEMOS ${DEMOS}
-       demo_VEH_Test_TireFEA
-   )
-endif()
-
-if(CH_USE_OPENCRG)
-   if(CH_ENABLE_MODULE_VSG)
-      set(DEMOS ${DEMOS}
-          demo_VEH_Test_FEDA_Ride
-          demo_VEH_Test_Cornering
-   )
-   endif()
-endif()
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
 list(APPEND LIBS "Chrono_vehicle")
+list(APPEND LIBS "Chrono_vehicle_advanced_systems")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(CH_ENABLE_MODULE_FSI_SPH)

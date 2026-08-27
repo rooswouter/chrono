@@ -21,3 +21,11 @@ add_subdirectory(fsi)
 add_subdirectory(cosimulation)
 
 add_subdirectory(checkpoint)
+
+if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_ADVANCED_SYSTEMS)
+    option(BUILD_DEMOS_VEHICLE_ADVANCED_SYSTEMS "Build demo programs for Vehicle Advanced Systems module" TRUE)
+    mark_as_advanced(FORCE BUILD_DEMOS_VEHICLE_ADVANCED_SYSTEMS)
+    if(BUILD_DEMOS_VEHICLE_ADVANCED_SYSTEMS)
+      add_subdirectory(advanced_systems)
+    endif()
+endif()
