@@ -15,6 +15,7 @@
 // Advanced engine model based on the ChEngineShafts model.
 //  - Idle speed
 //  - Throttle response
+//  - based on https://x-engineer.org/modeling-simulation-vehicle-automatic-transmission/3/
 //
 // The losses are not implemented as shaft, but rather as a torque applied when throttle is 0.0
 // Losses should not be added when engine is producing torque, as this leads to reduced performance. Hence second shaft is also not necessary

@@ -25,6 +25,7 @@
 
 #include "chrono_vehicle/advanced_systems/ChUtilsAdvancedSystems.h"
 #include "chrono_vehicle/advanced_systems/ChEngineShaftsAdvanced.h"
+#include "chrono_vehicle/advanced_systems/ChPowertrainAssemblyAdvanced.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -131,7 +132,8 @@ int main(int argc, char* argv[]) {
     // Create and initialize the powertrain system
     auto engine = ReadEngineJSON(GetVehicleDataFile(vehicle_model->EngineJSON()));
     auto transmission = ReadTransmissionJSON(GetVehicleDataFile(vehicle_model->TransmissionJSON()));
-    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+    auto gear_changer = ReadGearChangerJSON(GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticGearChanger.json"));
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssemblyAdvanced>(engine, transmission, gear_changer);
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires

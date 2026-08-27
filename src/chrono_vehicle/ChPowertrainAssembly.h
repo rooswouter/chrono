@@ -39,7 +39,7 @@ class CH_VEHICLE_API ChPowertrainAssembly {
     ChPowertrainAssembly(std::shared_ptr<ChEngine> engine, std::shared_ptr<ChTransmission> transmission)
         : m_engine(engine), m_transmission(transmission) {}
 
-    ~ChPowertrainAssembly() {}
+    virtual ~ChPowertrainAssembly() {}
 
     const std::shared_ptr<ChEngine> GetEngine() const { return m_engine; }
     const std::shared_ptr<ChTransmission> GetTransmission() const { return m_transmission; }
@@ -50,18 +50,18 @@ class CH_VEHICLE_API ChPowertrainAssembly {
     double GetOutputTorque() const { return m_transmission->GetOutputDriveshaftTorque(); }
 
     /// Initialize this powertrain system by attaching it to an existing vehicle chassis.
-    void Initialize(std::shared_ptr<ChChassis> chassis);
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis);
 
     /// Synchronize the state of this powertrain system at the current time.
-    void Synchronize(double time,                        ///< current time
+    virtual void Synchronize(double time,                        ///< current time
                      const DriverInputs& driver_inputs,  ///< current driver inputs
                      double driveshaft_speed             ///< input driveline speed
     );
 
     /// Advance the state of this powertrain system by the specified time step.
-    void Advance(double step);
+    virtual void Advance(double step);
 
-  private:
+  protected:
     std::shared_ptr<ChEngine> m_engine;
     std::shared_ptr<ChTransmission> m_transmission;
 
