@@ -66,7 +66,7 @@ namespace chrono {
             /// Return the reaction torque on the chassis body.
             virtual double GetChassisReactionTorque() const override { return -m_motorblock_to_body->GetTorqueReactionOnShaft(); }
             /// Construct a shafts-based engine model.
-            ChEngineShaftsAdvanced(const std::string& name, const ChVector3d& dir_motor_block = ChVector3d(0, 1, 0));
+            ChEngineShaftsAdvanced(const std::string& name, const ChVector3d& dir_motor_block = ChVector3d(1, 0, 0));
 
             /// Set inertia of the motor block.
             virtual double GetMotorBlockInertia() const = 0;

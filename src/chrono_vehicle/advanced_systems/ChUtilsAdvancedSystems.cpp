@@ -32,8 +32,6 @@ namespace vehicle {
 	void RegisterAdvancedSystems()
 	{
 		// Engine
-        std::function<std::shared_ptr<ChEngine>(const rapidjson::Document& d)>;
-
 		std::function<std::shared_ptr<ChEngine>(const rapidjson::Document& d)> engineFactory = [](const rapidjson::Document& d) {
             return chrono_types::make_shared<EngineShaftsAdvanced>(d);
         };

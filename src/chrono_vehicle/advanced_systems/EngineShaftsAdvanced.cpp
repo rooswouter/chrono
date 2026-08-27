@@ -50,6 +50,9 @@ namespace chrono {
             // Read engine data
             m_motorblock_inertia = d["Motor Block Inertia"].GetDouble();
             m_motorshaft_inertia = d["Motorshaft Inertia"].GetDouble();
+            
+            // Check if we have a full map, or also a throttle scaling
+
             m_engine_torque.Read(d["Torque Map"]);
 
             SetIdleSpeed(CH_RPM_TO_RAD_S * d["Idle Speed"].GetDouble());

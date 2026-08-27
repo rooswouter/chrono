@@ -139,6 +139,9 @@ class ChApi ChMap2DData {
     void Set(std::map<double, std::vector<std::pair<double, double>>>& map, double x_factor = 1, double y_factor = 1, double z_factor = 1) const;
 
   private:
+    /// Read data from the specified JSON object, where object has a Scaling and a Data field. The scaling is applied to create a full 2D data map
+    void Read_Scaled(const rapidjson::Value& a);
+
     std::map<double, std::vector<std::pair<double, double>>> m_data;
 };
 

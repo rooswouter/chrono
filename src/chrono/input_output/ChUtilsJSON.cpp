@@ -588,8 +588,12 @@ void ChMapData::Set(std::vector<std::pair<double, double>>& vec, double x_factor
 // -----------------------------------------------------------------------------
 
 void ChMap2DData::Read(const rapidjson::Value& a) {
-    assert(a.IsArray());
-
+    // Check if data is a full 3D table, or if we need to apply scaling to the Z via a scaling table
+    if (!a.IsArray()) {
+        Read_Scaled(a);
+        return;
+    }
+    
     for (unsigned int i = 0; i < a.Size(); i++) {
         double x = a[i][0u].GetDouble();
         assert(a[i][1u].IsArray());
@@ -599,6 +603,64 @@ void ChMap2DData::Read(const rapidjson::Value& a) {
         for (unsigned int j = 0; j < a[i][1u].Size(); j++) {
             table.push_back(std::make_pair(a[i][1u][j][0u].GetDouble(), a[i][1u][j][1u].GetDouble()));
         }
+        m_data.insert(std::make_pair(x, table));
+    }
+}
+
+void ChMap2DData::Read_Scaled(const rapidjson::Value& a) {
+    std::vector<double> y_data;
+    std::vector<double> z_data;
+    assert(a["Data"].IsArray());
+    for (unsigned int i = 0; i < a["Data"].Size(); i++) {
+        y_data.push_back(a["Data"][i][0u].GetDouble());
+        z_data.push_back(a["Data"][i][1u].GetDouble());
+    }
+
+    assert(a["Scaling"].IsArray());
+
+    std::map<double, std::vector<double>> scalingMap;
+
+    for (unsigned int i = 0; i < a["Scaling"].Size(); i++) {
+        assert(a["Scaling"][i][1u].IsArray());
+        double x = a["Scaling"][i][0u].GetDouble();
+        std::vector<double> values;
+        for (unsigned int j = 0; j < a["Scaling"][i][1u].Size(); j++) {
+            values.push_back(a["Scaling"][i][1u][j].GetDouble());
+        }
+        scalingMap.insert(std::make_pair(x, values));
+    }
+    assert(!scalingMap.empty());
+
+    // Now combine the data into a single 2D table. Take the supplied y intervals from the dataMap as leading, and interpolate the throttle values from min to max y
+    auto [y_min_it, y_max_it] = std::minmax_element(y_data.begin(), y_data.end());
+    double y_min = *y_min_it;
+    double y_max = *y_max_it;
+    
+
+    double x_step_size = (y_max - y_min) / (scalingMap.begin()->second.size() - 1);
+    int nr_y_steps = y_data.size();
+    
+    
+    std::map<double, ChFunctionInterp> scaling_interpolator_map;
+    for (auto it = scalingMap.begin(); it != scalingMap.end(); ++it) {
+        double x = it->first;
+        ChFunctionInterp interp;
+        for (unsigned int i = 0; i < it->second.size(); ++i) {
+            interp.AddPoint(y_min + i * x_step_size, it->second[i]);
+        }
+        scaling_interpolator_map.insert(std::make_pair(x, interp));
+    }
+
+    for (auto it = scaling_interpolator_map.begin(); it != scaling_interpolator_map.end(); ++it) {
+        double x = it->first;
+
+        
+        std::vector<std::pair<double, double>> table;
+        for (unsigned int i = 0; i < y_data.size(); i++) {
+            double z = it->second.GetVal(y_data[i]) * z_data[i];
+            table.push_back(std::make_pair(y_data[i], z));
+        }
+
         m_data.insert(std::make_pair(x, table));
     }
 }
