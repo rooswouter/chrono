@@ -82,7 +82,7 @@ enum class EngineTestsEnum
 };
 // =============================================================================
 
-DriverInputs GetDriverInputs(EngineTestsEnum test_mode, WheeledVehicle &vehicle, double time);
+void UpdateDriverInputs(DriverInputs& driver_inputs, EngineTestsEnum test_mode, WheeledVehicle& vehicle, double time);
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     ChPathFollowerDriver driver(vehicle, path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
-    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.GetSpeedController().SetGains(0.0, 0, 0);
     driver.Initialize();
 
     // -----------------------------------------
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
         if (vis) {
             if (!vis->Run())
                 break;
-            const ChVector3d cur_cam_target = vehicle.GetChassis()->GetPos();
+            const ChVector3d cur_cam_target = vehicle.GetChassis()->GetPos() + orbitPlugin->GetOffset();
             const ChVector3d delta = cur_cam_target - prev_cam_target;
 
             if (delta.Length2() > 1e-20) {
@@ -354,7 +354,8 @@ int main(int argc, char* argv[]) {
                 driver_inputs.m_braking = 0.8;
             }
             */
-            DriverInputs driver_inputs = GetDriverInputs(test_mode, vehicle, time);
+            DriverInputs driver_inputs = driver.GetInputs();
+            UpdateDriverInputs(driver_inputs, test_mode, vehicle, time);
             // Collect output
             if (output) {
                 csv << time;
@@ -393,7 +394,6 @@ int main(int argc, char* argv[]) {
 void GetDriverInputsStep(DriverInputs &driver_inputs, WheeledVehicle& vehicle, double time) {
     // 25% steps, 2 seconds each
 
-    driver_inputs.m_steering = 0.0;
     int step = (int)floor(time / 2.0);
     step = step % 8;
     driver_inputs.m_throttle = step <= 4 ? 0.25 * step : 1.0 - (0.25 * (step - 4));
@@ -404,30 +404,29 @@ void GetDriverInputsStep(DriverInputs &driver_inputs, WheeledVehicle& vehicle, d
 }
 
 void GetDriverInputsThrottle(double throttle, DriverInputs& driver_inputs, WheeledVehicle& vehicle, double time) {
-    driver_inputs.m_steering = 0.0;
     driver_inputs.m_throttle = throttle;
     driver_inputs.m_braking = 0.0;
+    if (time > 10.0) {
+        driver_inputs.m_throttle = 0.0;
+        driver_inputs.m_braking = 0.2;
+    }
+
     driver_inputs.m_clutch = 0.0;
 
     //vehicle.GetTransmission()->SetGear(1);
 }
 
-DriverInputs GetDriverInputs(EngineTestsEnum test_mode, WheeledVehicle& vehicle, double time) {
-    DriverInputs driver_inputs;
-    driver_inputs.m_steering = 0.0;
-    driver_inputs.m_throttle = 0.0;
-    driver_inputs.m_braking = 0.0;
-    driver_inputs.m_clutch = 0.0;
+void UpdateDriverInputs(DriverInputs& driver_inputs, EngineTestsEnum test_mode, WheeledVehicle& vehicle, double time) {
 
     auto engineAdvanced = std::dynamic_pointer_cast<ChEngineShaftsAdvanced>(vehicle.GetEngine());
     if (time < 0.5) {
-        return driver_inputs;
+        return;
     }
     // Start engine first
     if (engineAdvanced->GetEngineState() != EngineState::RUNNING)
     {
         driver_inputs.m_ignition = IgnitionState::START;
-        return driver_inputs;
+        return;
     }
     driver_inputs.m_ignition = IgnitionState::ON;
 
@@ -445,5 +444,5 @@ DriverInputs GetDriverInputs(EngineTestsEnum test_mode, WheeledVehicle& vehicle,
             GetDriverInputsThrottle(1.0, driver_inputs, vehicle, time);
             break;
     }
-    return driver_inputs;
+    return;
 }
