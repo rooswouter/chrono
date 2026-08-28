@@ -23,6 +23,7 @@ class CH_VSG_API ChMouseOrbitZoomCameraVSGPlugin : public ChVisualSystemVSGPlugi
 
     /// Sensitivity in radians per pixel for orbiting.
     void SetOrbitSensitivity(double radians_per_pixel) { m_orbit_sensitivity = radians_per_pixel; }
+    void SetPanSensitivity(double exp_per_pixel) { m_pan_sensitivity = exp_per_pixel; }
 
     /// Sensitivity for zooming: the zoom is computed as `exp(-dy * m_zoom_sensitivity)`.
     void SetZoomSensitivity(double exp_per_pixel) { m_zoom_sensitivity = exp_per_pixel; }
@@ -36,6 +37,8 @@ class CH_VSG_API ChMouseOrbitZoomCameraVSGPlugin : public ChVisualSystemVSGPlugi
     /// Return the last pressed key (VSG `KeySymbol` as `int`), or -1 if none.
     int GetKey();
 
+    ChVector3d GetOffset();
+
     virtual bool DisableDefaultCameraTrackball() const override { return true; }
 
   protected:
@@ -46,10 +49,11 @@ class CH_VSG_API ChMouseOrbitZoomCameraVSGPlugin : public ChVisualSystemVSGPlugi
 
     CameraVerticalDir m_up_dir;
     double m_orbit_sensitivity = 0.005;
+    double m_pan_sensitivity = 0.01;
     double m_zoom_sensitivity = 0.01;
     double m_zoom_min_distance = 0.001;
     double m_zoom_max_distance = 1.0e6;
-
+    
     std::shared_ptr<ChMouseOrbitZoomCameraEventHandlerVSG> m_event_handler;
 };
 

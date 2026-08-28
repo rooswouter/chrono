@@ -41,6 +41,7 @@ class ChMouseOrbitZoomCameraVSGPlugin::ChMouseOrbitZoomCameraEventHandlerVSG : p
     ChMouseOrbitZoomCameraEventHandlerVSG(ChVisualSystemVSG& vsys,
                                           CameraVerticalDir up_dir,
                                           double orbit_sensitivity,
+                                          double pan_sensitivity,
                                           double zoom_sensitivity,
                                           double zoom_min_distance,
                                           double zoom_max_distance)
@@ -48,6 +49,7 @@ class ChMouseOrbitZoomCameraVSGPlugin::ChMouseOrbitZoomCameraEventHandlerVSG : p
           m_up_dir(up_dir),
           m_up_unit(up_from_vertical_dir(up_dir).GetNormalized()),
           m_orbit_sensitivity(orbit_sensitivity),
+          m_pan_sensitivity(pan_sensitivity),
           m_zoom_sensitivity(zoom_sensitivity),
           m_zoom_min_distance(zoom_min_distance),
           m_zoom_max_distance(zoom_max_distance) {}
@@ -61,6 +63,7 @@ class ChMouseOrbitZoomCameraVSGPlugin::ChMouseOrbitZoomCameraEventHandlerVSG : p
         m_last_y = ev.y;
 
         m_orbiting = (ev.mask & vsg::BUTTON_MASK_1) != 0;
+        m_panning = (ev.mask & vsg::BUTTON_MASK_2) != 0;
         m_zooming = (ev.mask & vsg::BUTTON_MASK_3) != 0;
     }
 
@@ -70,11 +73,12 @@ class ChMouseOrbitZoomCameraVSGPlugin::ChMouseOrbitZoomCameraEventHandlerVSG : p
 
         // After release, the mask should reflect which buttons remain pressed.
         m_orbiting = (ev.mask & vsg::BUTTON_MASK_1) != 0;
+        m_panning = (ev.mask & vsg::BUTTON_MASK_2) != 0;
         m_zooming = (ev.mask & vsg::BUTTON_MASK_3) != 0;
     }
 
     void process(vsg::MoveEvent& ev) override {
-        if (!m_orbiting && !m_zooming)
+        if (!m_orbiting && !m_zooming && !m_panning)
             return;
 
         const double dx = static_cast<double>(ev.x - m_last_x);
@@ -84,10 +88,13 @@ class ChMouseOrbitZoomCameraVSGPlugin::ChMouseOrbitZoomCameraEventHandlerVSG : p
 
         if (m_orbiting) {
             orbit(dx, dy);
+        } else if (m_panning) {
+            pan(dx, dy);
         } else if (m_zooming) {
             zoom(dy);
         }
     }
+    ChVector3d GetOffset() { return m_offset; };
 
   private:
     void orbit(double dx, double dy) {
@@ -123,10 +130,23 @@ class ChMouseOrbitZoomCameraVSGPlugin::ChMouseOrbitZoomCameraEventHandlerVSG : p
         m_vsys.SetCameraPosition(eye_new);
     }
 
+    void pan(double dx, double dy) {
+        ChVector3d eye = m_vsys.GetCameraPosition();
+        ChVector3d target = m_vsys.GetCameraTarget();
+        ChVector3d v = eye - target;
+
+        // Pan perpendicular to the look direction, but still aligned with vertical and horizontal
+        v.Normalize();
+        ChVector3d up = {0.0, 0.0, 1.0};
+        ChVector3d hor = Vcross(v, up);
+        ChVector3d ver = Vcross(v, hor);
+        m_offset += m_pan_sensitivity * dx * hor - m_pan_sensitivity * dy * ver;
+    }
+
+
     void zoom(double dy) {
         ChVector3d eye = m_vsys.GetCameraPosition();
         ChVector3d target = m_vsys.GetCameraTarget();
-
         ChVector3d v = eye - target;
         const double radius = v.Length();
         if (radius < 1e-9)
@@ -145,13 +165,16 @@ class ChMouseOrbitZoomCameraVSGPlugin::ChMouseOrbitZoomCameraEventHandlerVSG : p
     ChVisualSystemVSG& m_vsys;
     CameraVerticalDir m_up_dir;
     ChVector3d m_up_unit;
+    ChVector3d m_offset = {0.0, 0.0, 0.0};
 
     double m_orbit_sensitivity;
+    double m_pan_sensitivity;
     double m_zoom_sensitivity;
     double m_zoom_min_distance;
     double m_zoom_max_distance;
 
     bool m_orbiting = false;
+    bool m_panning = false;
     bool m_zooming = false;
 
     int32_t m_last_x = 0;
@@ -169,10 +192,14 @@ int ChMouseOrbitZoomCameraVSGPlugin::GetKey() {
 
 void ChMouseOrbitZoomCameraVSGPlugin::OnAttach() {
     auto& vsys = GetVisualSystemVSG();
-    m_event_handler = std::make_shared<ChMouseOrbitZoomCameraEventHandlerVSG>(vsys, m_up_dir, m_orbit_sensitivity,
+    m_event_handler = std::make_shared<ChMouseOrbitZoomCameraEventHandlerVSG>(vsys, m_up_dir, m_orbit_sensitivity, m_pan_sensitivity,
                                                                                 m_zoom_sensitivity, m_zoom_min_distance,
                                                                                 m_zoom_max_distance);
     AddEventHandler(m_event_handler);
+}
+
+ChVector3d ChMouseOrbitZoomCameraVSGPlugin::GetOffset() {
+    return m_event_handler->GetOffset();
 }
 
 }  // namespace vsg3d
