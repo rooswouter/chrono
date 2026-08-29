@@ -58,6 +58,7 @@ class HMMWV_Model : public WheeledVehicleJSON {
   public:
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
+        return "hmmwv/vehicle/HMMWV_Vehicle_advanced.json";
         return "hmmwv/vehicle/HMMWV_Vehicle.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_replica.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";

@@ -23,8 +23,10 @@
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/core/ChTimer.h"
 
+#include "chrono_vehicle/advanced_systems/ChWheeledVehicleAdvanced.h"
 #include "chrono_vehicle/advanced_systems/ChUtilsAdvancedSystems.h"
 #include "chrono_vehicle/advanced_systems/ChEngineShaftsAdvanced.h"
+
 #include "chrono_vehicle/advanced_systems/ChPowertrainAssemblyAdvanced.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
@@ -119,7 +121,7 @@ int main(int argc, char* argv[]) {
     RegisterAdvancedSystems();
 
     // Create the vehicle system
-    WheeledVehicle vehicle(GetVehicleDataFile(vehicle_model->VehicleJSON()), ChContactMethod::SMC);
+    ChWheeledVehicleAdvanced vehicle(GetVehicleDataFile(vehicle_model->VehicleJSON()), ChContactMethod::SMC);
     vehicle.Initialize(ChCoordsys<>(ChVector3(0.0,0.0,0.65), QuatFromAngleZ(0.0)));
     vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
@@ -322,11 +324,11 @@ int main(int argc, char* argv[]) {
                 speed_recorder.AddPoint(time, speed);
                 dist_recorder.AddPoint(time, dist);
 
-                if (time > 6 && std::abs((speed - last_speed) / step_size) < 2e-4) {
+                if (time > 6 && speed < 1e-3) {
                     done = true;
                     timer.stop();
                     std::cout << "Simulation time: " << timer() << std::endl;
-                    std::cout << "Maximum speed: " << speed << std::endl;
+                    std::cout << "Distance: " << dist << std::endl;
 #ifdef CHRONO_POSTPROCESS
                     {
                         postprocess::ChGnuPlot gplot_speed(out_dir + "/speed.gpl");
@@ -408,7 +410,7 @@ void GetDriverInputsThrottle(double throttle, DriverInputs& driver_inputs, Wheel
     driver_inputs.m_braking = 0.0;
     if (time > 10.0) {
         driver_inputs.m_throttle = 0.0;
-        driver_inputs.m_braking = 0.2;
+        driver_inputs.m_braking = 1.0;
     }
 
     driver_inputs.m_clutch = 0.0;

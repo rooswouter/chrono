@@ -64,7 +64,7 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     // ----------------------------
     // Validations of the JSON file
     // ----------------------------
-
+        
     assert(d.HasMember("Chassis"));
     assert(d.HasMember("Axles"));
     assert(d["Axles"].IsArray());

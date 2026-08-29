@@ -14,6 +14,8 @@ endif()
 install(FILES ChApiModels.h DESTINATION include/chrono_vehicle/advanced_systems)
 
 set(CV_VEHICLE_ADVANCED_SYSTEM_FILES
+    ChABS.cpp
+    ChABS.h
     ChAutomaticTransmissionShaftsAdvanced.cpp
     ChAutomaticTransmissionShaftsAdvanced.h
     ChUtilsAdvancedSystems.cpp
@@ -29,6 +31,9 @@ set(CV_VEHICLE_ADVANCED_SYSTEM_FILES
     ChGearChanger.h
     ChAutomaticGearChanger.cpp
     ChAutomaticGearChanger.h
+    ChWheeledVehicleAdvanced.cpp
+    ChWheeledVehicleAdvanced.h
+    ChVehicleSystem.h
 )
 
 source_group("advanced_systems" FILES ${CV_VEHICLE_ADVANCED_SYSTEM_FILES})

@@ -27,12 +27,32 @@
 #include "chrono_vehicle/advanced_systems/EngineShaftsAdvanced.h"
 #include "chrono_vehicle/advanced_systems/ChAutomaticGearChanger.h"
 #include "chrono_vehicle/advanced_systems/ChGearChanger.h"
+#include "chrono_vehicle/advanced_systems/ChABS.h"
 
 using namespace rapidjson;
-
+#if 1
+#define CREATE_FACTORY(factoryName, objectType) \
+namespace { \
+    std::unordered_map<std::string, factoryName ## JSONFactory>& Get ## factoryName ## JSONFactories() { \
+        static std::unordered_map<std::string, factoryName ## JSONFactory> factories; \
+        return factories; \
+    } \
+} \
+void Register ## factoryName ## JSONFactory(const std::string& template_name, factoryName ## JSONFactory factory) { \
+    Get ## factoryName ## JSONFactories()[template_name] = std::move(factory); \
+} \
+void Unregister ## factoryName ## SONFactory(const std::string& template_name) { \
+    Get ## factoryName ## JSONFactories().erase(template_name); \
+}
+#endif
 namespace chrono {
 namespace vehicle {
 
+    CREATE_FACTORY(GearChanger, ChGearChanger)
+    CREATE_FACTORY(VehicleSystem, ChVehicleSystem)
+
+
+#if 0
     namespace {
             std::unordered_map<std::string, GearChangerJSONFactory>& GetGearChangerJSONFactories() {
             static std::unordered_map<std::string, GearChangerJSONFactory> factories;
@@ -50,7 +70,7 @@ namespace vehicle {
     void UnregisterGearChangerSONFactory(const std::string& template_name) {
         GetGearChangerJSONFactories().erase(template_name);
     }
-
+#endif
 
 
 	void RegisterAdvancedSystems()
@@ -66,6 +86,12 @@ namespace vehicle {
             return chrono_types::make_shared<ChAutomaticGearChanger>(d);
         };
         RegisterGearChangerJSONFactory("AutomaticGearChanger", gearChangerFactory);
+
+        // Vehicle Systems
+        std::function<std::shared_ptr<ChVehicleSystem>(const rapidjson::Document& d)> absFactory = [](const rapidjson::Document& d) {
+            return std::make_shared<ChABS>(d);
+            };
+        RegisterVehicleSystemJSONFactory("ABS", absFactory);
 	}
 
 	std::shared_ptr<ChGearChanger> ReadGearChangerJSON(const std::string& filename) {
@@ -93,6 +119,32 @@ namespace vehicle {
         }
 
         return gear_changer;
+    }
+
+    std::shared_ptr<ChVehicleSystem> ReadVehicleSystemJSON(const std::string& filename)
+    {
+        std::shared_ptr<ChVehicleSystem> vehicle_system;
+        Document d;
+        ReadFileJSON(filename, d);
+        if (d.IsNull())
+            return nullptr;
+
+        // Check that the given file is a transmission specification file.
+        assert(d.HasMember("Type"));
+        std::string type = d["Type"].GetString();
+        assert(type.compare("VehicleSystem") == 0);
+
+        // Extract the transmission type.
+        assert(d.HasMember("Template"));
+        std::string subtype = d["Template"].GetString();
+
+        // Prefer a user-registered factory for this template name.
+        const auto& factories = GetVehicleSystemJSONFactories();
+        auto factory_it = factories.find(subtype);
+        if (factory_it != factories.end()) {
+            return factory_it->second(d);
+        }
+        return vehicle_system;
     }
 
     }
