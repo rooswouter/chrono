@@ -24,6 +24,7 @@
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/advanced_systems/ChUtilsAdvancedSystems.h"
+#include "chrono_vehicle/advanced_systems/ChVehicleSystem.h"
 
 using namespace rapidjson;
 
@@ -65,7 +66,7 @@ namespace chrono {
             }
 
             for (unsigned int i = 0; i < d["Vehicle Systems"].Size(); i++) {
-                std::shared_ptr<ChVehicleSystem> vehicleSystem = ReadVehicleSystemJSON(GetVehicleDataFile(d["Vehicle Systems"][i]["Input File"].GetString()));
+                std::shared_ptr<ChVehicleSystem> vehicleSystem = JSONFactory<ChVehicleSystem>::ReadJSON(GetVehicleDataFile(d["Vehicle Systems"][i]["Input File"].GetString()));
                 if (vehicleSystem && d["Vehicle Systems"][i].HasMember("Name")) {
                     // Overwrite the name if specified in the Vehicle file as well
                     vehicleSystem->SetName(d["Vehicle Systems"][i]["Name"].GetString());

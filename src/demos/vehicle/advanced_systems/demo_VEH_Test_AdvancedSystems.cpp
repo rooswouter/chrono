@@ -117,9 +117,7 @@ int main(int argc, char* argv[]) {
     // auto select ram (13)
     auto vehicle_model = models[0].first;
 
-    // Register factories first
-    RegisterAdvancedSystems();
-
+    
     // Create the vehicle system
     ChWheeledVehicleAdvanced vehicle(GetVehicleDataFile(vehicle_model->VehicleJSON()), ChContactMethod::SMC);
     vehicle.Initialize(ChCoordsys<>(ChVector3(0.0,0.0,0.65), QuatFromAngleZ(0.0)));
@@ -134,7 +132,7 @@ int main(int argc, char* argv[]) {
     // Create and initialize the powertrain system
     auto engine = ReadEngineJSON(GetVehicleDataFile(vehicle_model->EngineJSON()));
     auto transmission = ReadTransmissionJSON(GetVehicleDataFile(vehicle_model->TransmissionJSON()));
-    auto gear_changer = ReadGearChangerJSON(GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticGearChanger.json"));
+    auto gear_changer = JSONFactory<ChGearChanger>::ReadJSON(GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticGearChanger.json"));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssemblyAdvanced>(engine, transmission, gear_changer);
     vehicle.InitializePowertrain(powertrain);
 

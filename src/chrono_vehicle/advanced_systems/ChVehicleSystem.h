@@ -42,7 +42,7 @@ namespace chrono {
             virtual ~ChVehicleSystem() {}
 
             /// Get the name of the vehicle system template.
-            virtual std::string GetTemplateName() const = 0;
+            virtual std::string GetTemplateName() const { return "VehicleSystem"; }
 
             /// Initialize the given tire and attach it to the specified wheel.
             /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
@@ -63,6 +63,11 @@ namespace chrono {
                 ReadFileJSON(filename, d);
                 if (d.IsNull())
                     return;
+
+                // Check that the given file is a transmission specification file.
+                assert(d.HasMember("Type"));
+                std::string type = d["Type"].GetString();
+                assert(type.compare("VehicleSystem") == 0);
 
                 Create(d);
             }
