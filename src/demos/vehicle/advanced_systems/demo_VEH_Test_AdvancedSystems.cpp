@@ -27,7 +27,6 @@
 #include "chrono_vehicle/advanced_systems/ChUtilsAdvancedSystems.h"
 #include "chrono_vehicle/advanced_systems/ChEngineShaftsAdvanced.h"
 
-#include "chrono_vehicle/advanced_systems/ChPowertrainAssemblyAdvanced.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -67,7 +66,7 @@ ChTire::CollisionType tire_collision_type = ChTire::CollisionType::SINGLE_POINT;
 bool include_aero_drag = false;
 
 // Simulation step sizes
-double step_size = 2e-3;
+double step_size = 1e-3;
 
 // End simulation time
 double t_end = 100;
@@ -115,7 +114,7 @@ int main(int argc, char* argv[]) {
 
     EngineTestsEnum test_mode = (EngineTestsEnum)(which - 1);
     // auto select ram (13)
-    auto vehicle_model = models[0].first;
+    auto vehicle_model = models[13].first;
 
     
     // Create the vehicle system
@@ -198,7 +197,7 @@ int main(int argc, char* argv[]) {
     auto path = StraightLinePath(path_start, path_end, 1);
     ChPathFollowerDriver driver(vehicle, path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
-    driver.GetSteeringController().SetGains(0.5, 0, 0);
+    driver.GetSteeringController().SetGains(-0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.0, 0, 0);
     driver.Initialize();
 
@@ -265,7 +264,7 @@ int main(int argc, char* argv[]) {
     int mode = 0;   // 0 = paused, 1 = playing, 2 = single step
     ChVector3d prev_cam_target = vehicle.GetChassis()->GetPos();
 
-    vehicle.EnableRealtime(true);
+    vehicle.EnableRealtime(false);
 
     while (true) {
         time = vehicle.GetSystem()->GetChTime();

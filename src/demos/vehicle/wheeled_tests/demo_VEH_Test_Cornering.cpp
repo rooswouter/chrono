@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
 
     ChPathFollowerDriverPP driver(vehicle, path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(D_pre);
-    driver.GetSteeringController().SetGain(0);
+    driver.GetSteeringController().SetGain(0.0);
     driver.GetSteeringController().SetStartSpeed(target_speed);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();

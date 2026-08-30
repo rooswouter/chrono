@@ -7,6 +7,7 @@
 
 set(DEMOS
     demo_VEH_Test_AdvancedSystems
+    demo_VEH_Test_Advanced_OpenCRGRide
 )
 
 #--------------------------------------------------------------

@@ -303,9 +303,10 @@ class DodgeRamTRX_Model : public WheeledVehicleJSON
 {
 public:
     virtual std::string ModelName() const override { return "Dodge Ram TRX"; }
-    virtual std::string VehicleJSON() const override { return "dodgeramtrx/vehicle/DodgeRamTRX_Vehicle.json"; }
+    virtual std::string VehicleJSON() const override { return "dodgeramtrx/vehicle/DodgeRamTRX_VehicleAdvanced.json"; }
     virtual std::string TireJSON(unsigned int axle) const override
     {
+        return "dodgeramtrx/tire/DodgeRamTRX_TMeasyTire.json";
         return "dodgeramtrx/tire/DodgeRamTRX_RigidTire.json";
     }
     virtual std::string EngineJSON() const override
