@@ -80,7 +80,7 @@ namespace chrono {
                     return chrono_types::make_shared<EngineShaftsAdvanced>(d);
                 });
 
-            JSONFactory<ChGearChanger>::Register("AutomaticGearChanger",
+            JSONFactory<ChVehicleSystem>::Register("AutomaticGearChanger",
                 [](const rapidjson::Document& d) {
                     return std::make_shared<ChAutomaticGearChanger>(d);
                 });

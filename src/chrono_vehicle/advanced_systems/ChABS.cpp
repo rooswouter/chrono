@@ -17,7 +17,9 @@
 // =============================================================================
 
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/advanced_systems/ChABS.h"
+
 
 using namespace rapidjson;
 

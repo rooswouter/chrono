@@ -42,7 +42,7 @@ class CH_VEHICLE_API ChAutomaticGearChanger : public ChGearChanger {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const { return "AutomaticGearChanger"; }
 
-    virtual void Update(double time, std::shared_ptr<ChTransmission> transmission, const DriverInputs &driver_inputs, double engine_rpm);
+    virtual void Synchronize(double time, DriverInputs& driver_inputs);
   protected:
   private:
     virtual void Create(const rapidjson::Document& d);

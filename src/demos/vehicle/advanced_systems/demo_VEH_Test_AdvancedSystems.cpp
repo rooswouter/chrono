@@ -132,8 +132,7 @@ int main(int argc, char* argv[]) {
     // Create and initialize the powertrain system
     auto engine = ReadEngineJSON(GetVehicleDataFile(vehicle_model->EngineJSON()));
     auto transmission = ReadTransmissionJSON(GetVehicleDataFile(vehicle_model->TransmissionJSON()));
-    auto gear_changer = JSONFactory<ChGearChanger>::ReadJSON(GetVehicleDataFile("hmmwv/powertrain/HMMWV_AutomaticGearChanger.json"));
-    auto powertrain = chrono_types::make_shared<ChPowertrainAssemblyAdvanced>(engine, transmission, gear_changer);
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires

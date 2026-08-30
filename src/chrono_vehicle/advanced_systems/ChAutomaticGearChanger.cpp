@@ -45,8 +45,9 @@ namespace vehicle {
         m_gear_shift_latency = d["Shift Latency"].GetDouble();
     }
 
-	void ChAutomaticGearChanger::Update(double time, std::shared_ptr<ChTransmission> transmission, const DriverInputs& driver_inputs, double engine_rpm)
+	void ChAutomaticGearChanger::Synchronize(double time, DriverInputs& driver_inputs)
 	{
+        ChGearChanger::Synchronize(time, driver_inputs);
         // All in RPM
         double up_shift_speed = m_up_shift_coeff[0] + m_up_shift_coeff[1] * driver_inputs.m_throttle + m_up_shift_coeff[2] * driver_inputs.m_throttle * driver_inputs.m_throttle +
                                 m_up_shift_coeff[3] * driver_inputs.m_throttle * driver_inputs.m_throttle * driver_inputs.m_throttle;
@@ -57,12 +58,12 @@ namespace vehicle {
 
         if (time - m_last_time_gearshift < m_gear_shift_latency)
             return;
-
+        double engine_rpm = m_engine->GetMotorSpeed() * CH_RAD_S_TO_RPM;
         if (engine_rpm > up_shift_speed) {
-            transmission->ShiftUp();
+            m_transmission->ShiftUp();
             m_last_time_gearshift = time;
         } else if (engine_rpm < down_shift_speed) {
-            transmission->ShiftDown();
+            m_transmission->ShiftDown();
             m_last_time_gearshift = time;
         }
 

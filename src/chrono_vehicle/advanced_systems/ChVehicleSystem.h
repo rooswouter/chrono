@@ -24,7 +24,6 @@
 #include <ostream>
 
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 using namespace rapidjson;
 

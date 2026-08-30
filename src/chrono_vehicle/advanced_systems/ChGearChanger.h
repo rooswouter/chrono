@@ -22,6 +22,8 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+#include "chrono_vehicle/advanced_systems/ChWheeledVehicleAdvanced.h"
+#include "chrono_vehicle/advanced_systems/ChVehicleSystem.h"
 #include "chrono_vehicle/ChTransmission.h"
 
 namespace chrono {
@@ -32,28 +34,39 @@ namespace vehicle {
 
 
 /// Template for a Gear Changer .
-class CH_VEHICLE_API ChGearChanger  {
+class CH_VEHICLE_API ChGearChanger : public ChVehicleSystem
+{
   public:
     /// Construct a shafts-based automatic transmission model.
     ChGearChanger() {};
 
     virtual ~ChGearChanger() {};
 
-    virtual void Initialize(std::shared_ptr<ChTransmission> transmission) {
-        // Force the Transmission is manual mode if it is Automatic, since the GearChanger will be reposnsible for all gear changes
-        if (transmission->IsAutomatic()) {
-            transmission->asAutomatic()->SetShiftMode(ChAutomaticTransmission::ShiftMode::MANUAL);
+    virtual void Initialize(ChWheeledVehicle* vehicle)
+    {
+        ChVehicleSystem::Initialize(vehicle);
+        m_transmission = vehicle->GetTransmission();
+        // Transmission normally gets set later, so call initialize again if m_transmission is invalid.
+        if (!m_transmission) {
+            return;
         }
-        
+        // Force the Transmission is manual mode if it is Automatic, since the GearChanger will be responsible for all gear changes
+        if (m_transmission->IsAutomatic()) {
+            m_transmission->asAutomatic()->SetShiftMode(ChAutomaticTransmission::ShiftMode::MANUAL);
+        }
+        m_engine = vehicle->GetEngine();
     }
-    /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const = 0;
 
-    virtual void Update(double time, std::shared_ptr<ChTransmission> transmission, const DriverInputs& driver_inputs, double engine_rpm) = 0;
-  protected:
-  private:
-    virtual void Create(const rapidjson::Document& d) = 0;
+    virtual void Synchronize(double time, DriverInputs& driver_inputs)
+    {
+        if (!m_transmission) {
+            Initialize(m_wheeled_vehicle);
+        }
+    };
 
+protected:
+    std::shared_ptr<ChTransmission> m_transmission = nullptr;
+    std::shared_ptr<ChEngine> m_engine = nullptr;
 };
 
 /// @} vehicle_powertrain

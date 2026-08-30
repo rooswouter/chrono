@@ -26,8 +26,6 @@ set(CV_VEHICLE_ADVANCED_SYSTEM_FILES
     EngineShaftsAdvanced.h
     ChShaftsThermalEngineAdvanced.cpp
     ChShaftsThermalEngineAdvanced.h
-    ChPowertrainAssemblyAdvanced.cpp
-    ChPowertrainAssemblyAdvanced.h
     ChGearChanger.h
     ChAutomaticGearChanger.cpp
     ChAutomaticGearChanger.h
