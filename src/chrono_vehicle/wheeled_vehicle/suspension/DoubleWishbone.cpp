@@ -166,7 +166,7 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Arm"]);
     m_springForceCB = ReadTSDAFunctorJSON(d["Spring"], m_springRestLength);
-
+    m_spring[LEFT]->
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());

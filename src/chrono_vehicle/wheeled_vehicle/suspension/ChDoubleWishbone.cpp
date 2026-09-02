@@ -370,7 +370,6 @@ std::vector<ChSuspension::ForceTSDA> ChDoubleWishbone::ReportSuspensionForce(Veh
 
     forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(), m_spring[side]->GetVelocity());
     forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(), m_shock[side]->GetVelocity());
-
     return forces;
 }
 
@@ -465,6 +464,9 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
+    // Use a per component check to see if a mesh is set, if none is set, use the primitive for that component. This allows having partial mesh / partial primitives
+
+   
     // Add visualization for uprights
     AddVisualizationUpright(m_upright[LEFT], 0.5 * (m_pointsL[SPINDLE] + m_pointsL[UPRIGHT]), m_pointsL[UCA_U], m_pointsL[LCA_U], m_pointsL[TIEROD_U], getUprightRadius());
     AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[UCA_U], m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
@@ -478,8 +480,23 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationControlArm(m_LCA[RIGHT], m_pointsR[LCA_F], m_pointsR[LCA_B], m_pointsR[LCA_U], getLCARadius());
 
     // Add visualization for the springs and shocks
+    if (vis == VisualizationType::MESH && m_spring[LEFT]->GetVisualModel()) {
+        /*
+        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_vis_mesh_file), true, true);
+        m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(std::filesystem::path(m_vis_mesh_file).stem().string());
+        m_spindle->AddVisualShape(m_trimesh_shape, ChFrame<>(ChVector3d(0, m_offset, 0), ChMatrix33<>(rot)));
+        return;
+        */
+    }
+
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(2 * getLCARadius(), 150, 15));
     m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(2 * getLCARadius(), 150, 15));
+    
+    
     m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
     m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
