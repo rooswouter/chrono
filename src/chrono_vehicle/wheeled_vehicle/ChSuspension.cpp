@@ -17,7 +17,12 @@
 // =============================================================================
 
 #include <algorithm>
+#include <filesystem>
 
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
@@ -72,6 +77,25 @@ void ChSuspension::RemoveVisualizationAssets() {
     // to the same body.
     ChPart::RemoveVisualizationAsset(m_spindle[LEFT], m_spindle_shapes[LEFT]);
     ChPart::RemoveVisualizationAsset(m_spindle[RIGHT], m_spindle_shapes[RIGHT]);
+}
+
+bool ChSuspension::AddVisualizationMesh(std::shared_ptr<ChBody> body,
+                                        const std::string& mesh_filename,
+                                        VehicleSide side) {
+    if (!body || mesh_filename.empty())
+        return false;
+
+    const auto mesh_file = GetVehicleDataFile(mesh_filename);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
+    if (!trimesh)
+        return false;
+
+    ChQuaternion<> rot = (side == LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(std::filesystem::path(mesh_filename).stem().string());
+    body->AddVisualShape(trimesh_shape, ChFrame<>(VNULL, ChMatrix33<>(rot)));
+    return true;
 }
 
 void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, double width) {

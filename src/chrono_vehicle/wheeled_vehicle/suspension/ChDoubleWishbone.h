@@ -270,8 +270,14 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (left/right)
 
+    /// Optional OBJ mesh files for visualization (relative to Chrono::Vehicle data directory).
+    /// If empty, the corresponding primitive visualization is used.
+    std::string m_upright_mesh_file;
+    std::string m_uca_mesh_file;
+    std::string m_lca_mesh_file;
+    std::string m_tierod_mesh_file;
     std::string m_spring_mesh_file;
-
+    std::string m_shock_mesh_file;
 
   private:
     // Flag indicating that the inertia matrices for the upright and control arms

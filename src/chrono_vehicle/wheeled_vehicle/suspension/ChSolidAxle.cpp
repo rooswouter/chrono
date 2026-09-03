@@ -28,6 +28,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
 
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSolidAxle.h"
 
 namespace chrono {
@@ -608,31 +609,98 @@ void ChSolidAxle::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_axleTube, m_pointsL[LL_A], m_pointsL[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_axleTube, m_pointsR[LL_A], m_pointsR[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    // Axle tube (single body spanning L/R — no side rotation)
+    if (vis == VisualizationType::MESH && !m_axleTube_mesh_file.empty()) {
+        AddVisualizationMesh(m_axleTube, m_axleTube_mesh_file);
+    } else {
+        AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+        AddVisualizationLink(m_axleTube, m_pointsL[LL_A], m_pointsL[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
+        AddVisualizationLink(m_axleTube, m_pointsR[LL_A], m_pointsR[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    }
 
-    AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    // Tierod (single body)
+    if (vis == VisualizationType::MESH && !m_tierod_mesh_file.empty()) {
+        AddVisualizationMesh(m_tierod, m_tierod_mesh_file);
+    } else {
+        AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    }
 
-    AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[BELLCRANK_DRAGLINK], getDraglinkRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationBellCrank(m_bellCrank, m_pointsL[BELLCRANK_DRAGLINK], m_pointsL[BELLCRANK_AXLE], m_pointsL[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
+    // Draglink (single body)
+    if (vis == VisualizationType::MESH && !m_draglink_mesh_file.empty()) {
+        AddVisualizationMesh(m_draglink, m_draglink_mesh_file);
+    } else {
+        AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[BELLCRANK_DRAGLINK], getDraglinkRadius(),
+                             ChColor(0.7f, 0.7f, 0.7f));
+    }
 
-    AddVisualizationLink(m_trackbarBody, m_trackbarAxle, m_trackbarChassis, getTrackbarRadius(), ChColor(0.7f, 0.2f, 0.7f));
+    // Bell crank (single body)
+    if (vis == VisualizationType::MESH && !m_bellCrank_mesh_file.empty()) {
+        AddVisualizationMesh(m_bellCrank, m_bellCrank_mesh_file);
+    } else {
+        AddVisualizationBellCrank(m_bellCrank, m_pointsL[BELLCRANK_DRAGLINK], m_pointsL[BELLCRANK_AXLE],
+                                  m_pointsL[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
+    }
 
-    AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K], getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
-    AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K], getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
+    // Trackbar / Panhard rod (single body)
+    if (vis == VisualizationType::MESH && !m_trackbar_mesh_file.empty()) {
+        AddVisualizationMesh(m_trackbarBody, m_trackbar_mesh_file);
+    } else {
+        AddVisualizationLink(m_trackbarBody, m_trackbarAxle, m_trackbarChassis, getTrackbarRadius(),
+                             ChColor(0.7f, 0.2f, 0.7f));
+    }
 
-    AddVisualizationLink(m_upperLink[LEFT], m_pointsL[UL_A], m_pointsL[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
-    AddVisualizationLink(m_upperLink[RIGHT], m_pointsR[UL_A], m_pointsR[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
+    // Knuckles
+    if (vis == VisualizationType::MESH && !m_knuckle_mesh_file.empty()) {
+        AddVisualizationMesh(m_knuckle[LEFT], m_knuckle_mesh_file, LEFT);
+        AddVisualizationMesh(m_knuckle[RIGHT], m_knuckle_mesh_file, RIGHT);
+    } else {
+        AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
+                                getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
+        AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K],
+                                getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
+    }
 
-    AddVisualizationLink(m_lowerLink[LEFT], m_pointsL[LL_A], m_pointsL[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
-    AddVisualizationLink(m_lowerLink[RIGHT], m_pointsR[LL_A], m_pointsR[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
+    // Upper links
+    if (vis == VisualizationType::MESH && !m_UL_mesh_file.empty()) {
+        AddVisualizationMesh(m_upperLink[LEFT], m_UL_mesh_file, LEFT);
+        AddVisualizationMesh(m_upperLink[RIGHT], m_UL_mesh_file, RIGHT);
+    } else {
+        AddVisualizationLink(m_upperLink[LEFT], m_pointsL[UL_A], m_pointsL[UL_C], getULRadius(),
+                             ChColor(0.6f, 0.2f, 0.6f));
+        AddVisualizationLink(m_upperLink[RIGHT], m_pointsR[UL_A], m_pointsR[UL_C], getULRadius(),
+                             ChColor(0.6f, 0.2f, 0.6f));
+    }
 
-    // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    // Lower links
+    if (vis == VisualizationType::MESH && !m_LL_mesh_file.empty()) {
+        AddVisualizationMesh(m_lowerLink[LEFT], m_LL_mesh_file, LEFT);
+        AddVisualizationMesh(m_lowerLink[RIGHT], m_LL_mesh_file, RIGHT);
+    } else {
+        AddVisualizationLink(m_lowerLink[LEFT], m_pointsL[LL_A], m_pointsL[LL_C], getLLRadius(),
+                             ChColor(0.2f, 0.6f, 0.2f));
+        AddVisualizationLink(m_lowerLink[RIGHT], m_pointsR[LL_A], m_pointsR[LL_C], getLLRadius(),
+                             ChColor(0.2f, 0.6f, 0.2f));
+    }
+
+    // Springs
+    if (vis == VisualizationType::MESH && !m_spring_mesh_file.empty()) {
+        const auto mesh_file = GetVehicleDataFile(m_spring_mesh_file);
+        m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
+        m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
+    } else {
+        m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+        m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    }
+
+    // Shocks
+    if (vis == VisualizationType::MESH && !m_shock_mesh_file.empty()) {
+        const auto mesh_file = GetVehicleDataFile(m_shock_mesh_file);
+        m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
+        m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
+    } else {
+        m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    }
 }
 
 void ChSolidAxle::RemoveVisualizationAssets() {

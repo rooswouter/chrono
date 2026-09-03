@@ -263,6 +263,19 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
 
+    /// Optional OBJ mesh files for visualization (relative to Chrono::Vehicle data directory).
+    /// If empty, the corresponding primitive visualization is used.
+    std::string m_axleTube_mesh_file;
+    std::string m_knuckle_mesh_file;
+    std::string m_UL_mesh_file;
+    std::string m_LL_mesh_file;
+    std::string m_tierod_mesh_file;
+    std::string m_draglink_mesh_file;
+    std::string m_bellCrank_mesh_file;
+    std::string m_trackbar_mesh_file;
+    std::string m_spring_mesh_file;
+    std::string m_shock_mesh_file;
+
   private:
     // Hardpoint absolute locations
     std::vector<ChVector3d> m_pointsL;

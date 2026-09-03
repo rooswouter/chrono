@@ -85,6 +85,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_knuckleRadius = d["Knuckle"]["Radius"].GetDouble();
     m_points[KNUCKLE_L] = ReadVectorJSON(d["Knuckle"]["Location Lower"]);
     m_points[KNUCKLE_U] = ReadVectorJSON(d["Knuckle"]["Location Upper"]);
+    if (d["Knuckle"].HasMember("Visualization") && d["Knuckle"]["Visualization"].HasMember("Mesh")) {
+        m_knuckle_mesh_file = d["Knuckle"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read UL data
     assert(d.HasMember("Upper Link"));
@@ -96,6 +99,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_ULRadius = d["Upper Link"]["Radius"].GetDouble();
     m_points[UL_A] = ReadVectorJSON(d["Upper Link"]["Location Axle"]);
     m_points[UL_C] = ReadVectorJSON(d["Upper Link"]["Location Chassis"]);
+    if (d["Upper Link"].HasMember("Visualization") && d["Upper Link"]["Visualization"].HasMember("Mesh")) {
+        m_UL_mesh_file = d["Upper Link"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read LL data
     assert(d.HasMember("Lower Link"));
@@ -107,6 +113,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_LLRadius = d["Lower Link"]["Radius"].GetDouble();
     m_points[LL_A] = ReadVectorJSON(d["Lower Link"]["Location Axle"]);
     m_points[LL_C] = ReadVectorJSON(d["Lower Link"]["Location Chassis"]);
+    if (d["Lower Link"].HasMember("Visualization") && d["Lower Link"]["Visualization"].HasMember("Mesh")) {
+        m_LL_mesh_file = d["Lower Link"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read Axle Tube data
     assert(d.HasMember("Axle Tube"));
@@ -116,6 +125,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_axleTubeCOM = ReadVectorJSON(d["Axle Tube"]["COM"]);
     m_axleTubeInertia = ReadVectorJSON(d["Axle Tube"]["Inertia"]);
     m_axleTubeRadius = d["Axle Tube"]["Radius"].GetDouble();
+    if (d["Axle Tube"].HasMember("Visualization") && d["Axle Tube"]["Visualization"].HasMember("Mesh")) {
+        m_axleTube_mesh_file = d["Axle Tube"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read trackbar (aka Panhard Rod) data
     assert(d.HasMember("Trackbar"));
@@ -126,6 +138,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_trackbarRadius = d["Trackbar"]["Radius"].GetDouble();
     m_points[TRACKBAR_A] = ReadVectorJSON(d["Trackbar"]["Location Axle"]);
     m_points[TRACKBAR_C] = ReadVectorJSON(d["Trackbar"]["Location Chassis"]);
+    if (d["Trackbar"].HasMember("Visualization") && d["Trackbar"]["Visualization"].HasMember("Mesh")) {
+        m_trackbar_mesh_file = d["Trackbar"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));
@@ -135,6 +150,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
     m_points[TIEROD_K] = ReadVectorJSON(d["Tierod"]["Location Knuckle"]);
     m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
+    if (d["Tierod"].HasMember("Visualization") && d["Tierod"]["Visualization"].HasMember("Mesh")) {
+        m_tierod_mesh_file = d["Tierod"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read Draglink data
     assert(d.HasMember("Draglink"));
@@ -145,6 +163,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_points[DRAGLINK_C] = ReadVectorJSON(d["Draglink"]["Location Chassis"]);
     m_points[BELLCRANK_DRAGLINK] = ReadVectorJSON(d["Draglink"]["Location Bell Crank"]);
     m_draglinkRadius = d["Draglink"]["Radius"].GetDouble();
+    if (d["Draglink"].HasMember("Visualization") && d["Draglink"]["Visualization"].HasMember("Mesh")) {
+        m_draglink_mesh_file = d["Draglink"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read Bell Crank data
     assert(d.HasMember("Bell Crank"));
@@ -155,6 +176,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_points[BELLCRANK_TIEROD] = ReadVectorJSON(d["Bell Crank"]["Location Tierod"]);
     m_points[BELLCRANK_AXLE] = ReadVectorJSON(d["Bell Crank"]["Location Axle"]);
     m_bellCrankRadius = d["Bell Crank"]["Radius"].GetDouble();
+    if (d["Bell Crank"].HasMember("Visualization") && d["Bell Crank"]["Visualization"].HasMember("Mesh")) {
+        m_bellCrank_mesh_file = d["Bell Crank"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
@@ -162,6 +186,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Axle"]);
     m_springForceCB = ReadTSDAFunctorJSON(d["Spring"], m_springRestLength);
+    if (d["Spring"].HasMember("Visualization") && d["Spring"]["Visualization"].HasMember("Mesh")) {
+        m_spring_mesh_file = d["Spring"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
@@ -169,6 +196,9 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Axle"]);
     m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
+    if (d["Shock"].HasMember("Visualization") && d["Shock"]["Visualization"].HasMember("Mesh")) {
+        m_shock_mesh_file = d["Shock"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read axle inertia
     assert(d.HasMember("Axle"));

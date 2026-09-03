@@ -189,6 +189,13 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];          ///< handles to spindle revolute joints
 
+    /// Attach an OBJ visualization mesh to a body (body-local frame).
+    /// For RIGHT side, rotate 180 deg about Z (same convention as wheels/tires).
+    /// Returns true if the mesh was attached.
+    static bool AddVisualizationMesh(std::shared_ptr<ChBody> body,
+                                     const std::string& mesh_filename,
+                                     VehicleSide side = LEFT);
+
   private:
     std::shared_ptr<ChVisualShape> m_spindle_shapes[2];
 

@@ -103,6 +103,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_uprightInertiaMoments = ReadVectorJSON(d["Upright"]["Moments of Inertia"]);
     m_uprightInertiaProducts = ReadVectorJSON(d["Upright"]["Products of Inertia"]);
     m_uprightRadius = d["Upright"]["Radius"].GetDouble();
+    if (d["Upright"].HasMember("Visualization") && d["Upright"]["Visualization"].HasMember("Mesh")) {
+        m_upright_mesh_file = d["Upright"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read UCA data
     assert(d.HasMember("Upper Control Arm"));
@@ -119,6 +122,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     if (d["Upper Control Arm"].HasMember("Bushing Data")) {
         m_UCABushingData = ReadBushingDataJSON(d["Upper Control Arm"]["Bushing Data"]);
     }
+    if (d["Upper Control Arm"].HasMember("Visualization") && d["Upper Control Arm"]["Visualization"].HasMember("Mesh")) {
+        m_uca_mesh_file = d["Upper Control Arm"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read LCA data
     assert(d.HasMember("Lower Control Arm"));
@@ -134,6 +140,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[LCA_U] = ReadVectorJSON(d["Lower Control Arm"]["Location Upright"]);
     if (d["Lower Control Arm"].HasMember("Bushing Data")) {
         m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
+    }
+    if (d["Lower Control Arm"].HasMember("Visualization") && d["Lower Control Arm"]["Visualization"].HasMember("Mesh")) {
+        m_lca_mesh_file = d["Lower Control Arm"]["Visualization"]["Mesh"].GetString();
     }
 
     // Read Tierod data
@@ -159,6 +168,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
+    if (d["Tierod"].HasMember("Visualization") && d["Tierod"]["Visualization"].HasMember("Mesh")) {
+        m_tierod_mesh_file = d["Tierod"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
@@ -166,12 +178,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Arm"]);
     m_springForceCB = ReadTSDAFunctorJSON(d["Spring"], m_springRestLength);
-    if (d["Spring"].HasMember("Visualization")) {
-        if (d["Spring"]["Visualization"].HasMember("Mesh")) {
-            m_spring_mesh_file = d["Spring"]["Visualization"]["Mesh"].GetString();
-        }
+    if (d["Spring"].HasMember("Visualization") && d["Spring"]["Visualization"].HasMember("Mesh")) {
+        m_spring_mesh_file = d["Spring"]["Visualization"]["Mesh"].GetString();
     }
-    
 
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
@@ -179,6 +188,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
     m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
+    if (d["Shock"].HasMember("Visualization") && d["Shock"]["Visualization"].HasMember("Mesh")) {
+        m_shock_mesh_file = d["Shock"]["Visualization"]["Mesh"].GetString();
+    }
 
     // Read axle inertia
     assert(d.HasMember("Axle"));

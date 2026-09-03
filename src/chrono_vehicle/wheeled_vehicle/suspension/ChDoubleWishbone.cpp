@@ -464,40 +464,75 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    // Use a per component check to see if a mesh is set, if none is set, use the primitive for that component. This allows having partial mesh / partial primitives
+    // Per-component: use mesh when VisualizationType::MESH and a file is set; otherwise primitives.
 
-   
-    // Add visualization for uprights
-    AddVisualizationUpright(m_upright[LEFT], 0.5 * (m_pointsL[SPINDLE] + m_pointsL[UPRIGHT]), m_pointsL[UCA_U], m_pointsL[LCA_U], m_pointsL[TIEROD_U], getUprightRadius());
-    AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[UCA_U], m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
+    // Uprights
+    if (vis == VisualizationType::MESH && !m_upright_mesh_file.empty()) {
+        AddVisualizationMesh(m_upright[LEFT], m_upright_mesh_file, LEFT);
+        AddVisualizationMesh(m_upright[RIGHT], m_upright_mesh_file, RIGHT);
+    } else {
+        AddVisualizationUpright(m_upright[LEFT], 0.5 * (m_pointsL[SPINDLE] + m_pointsL[UPRIGHT]), m_pointsL[UCA_U],
+                                m_pointsL[LCA_U], m_pointsL[TIEROD_U], getUprightRadius());
+        AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[UCA_U],
+                                m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
+    }
 
-    // Add visualization for upper control arms
-    AddVisualizationControlArm(m_UCA[LEFT], m_pointsL[UCA_F], m_pointsL[UCA_B], m_pointsL[UCA_U], getUCARadius());
-    AddVisualizationControlArm(m_UCA[RIGHT], m_pointsR[UCA_F], m_pointsR[UCA_B], m_pointsR[UCA_U], getUCARadius());
+    // Upper control arms
+    if (vis == VisualizationType::MESH && !m_uca_mesh_file.empty()) {
+        AddVisualizationMesh(m_UCA[LEFT], m_uca_mesh_file, LEFT);
+        AddVisualizationMesh(m_UCA[RIGHT], m_uca_mesh_file, RIGHT);
+    } else {
+        AddVisualizationControlArm(m_UCA[LEFT], m_pointsL[UCA_F], m_pointsL[UCA_B], m_pointsL[UCA_U], getUCARadius());
+        AddVisualizationControlArm(m_UCA[RIGHT], m_pointsR[UCA_F], m_pointsR[UCA_B], m_pointsR[UCA_U], getUCARadius());
+    }
 
-    // Add visualization for lower control arms
-    AddVisualizationControlArm(m_LCA[LEFT], m_pointsL[LCA_F], m_pointsL[LCA_B], m_pointsL[LCA_U], getLCARadius());
-    AddVisualizationControlArm(m_LCA[RIGHT], m_pointsR[LCA_F], m_pointsR[LCA_B], m_pointsR[LCA_U], getLCARadius());
+    // Lower control arms
+    if (vis == VisualizationType::MESH && !m_lca_mesh_file.empty()) {
+        AddVisualizationMesh(m_LCA[LEFT], m_lca_mesh_file, LEFT);
+        AddVisualizationMesh(m_LCA[RIGHT], m_lca_mesh_file, RIGHT);
+    } else {
+        AddVisualizationControlArm(m_LCA[LEFT], m_pointsL[LCA_F], m_pointsL[LCA_B], m_pointsL[LCA_U], getLCARadius());
+        AddVisualizationControlArm(m_LCA[RIGHT], m_pointsR[LCA_F], m_pointsR[LCA_B], m_pointsR[LCA_U], getLCARadius());
+    }
 
-    // Add visualization for the springs and shocks
+    // Springs (point-point mesh or coil)
     if (vis == VisualizationType::MESH && !m_spring_mesh_file.empty()) {
         const auto mesh_file = GetVehicleDataFile(m_spring_mesh_file);
         m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
         m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
-    //} else {
+    } else {
         m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(2 * getLCARadius(), 150, 15));
         m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(2 * getLCARadius(), 150, 15));
-    } 
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    }
 
-    // Add visualization for the tie-rods
-    if (UseTierodBodies()) {
-        AddVisualizationTierod(m_tierod[LEFT], m_pointsL[TIEROD_C], m_pointsL[TIEROD_U], getTierodRadius());
-        AddVisualizationTierod(m_tierod[RIGHT], m_pointsR[TIEROD_C], m_pointsR[TIEROD_U], getTierodRadius());
+    // Shocks (point-point mesh or segment)
+    if (vis == VisualizationType::MESH && !m_shock_mesh_file.empty()) {
+        const auto mesh_file = GetVehicleDataFile(m_shock_mesh_file);
+        m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
+        m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
     } else {
-        m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
-        m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    }
+
+    // Tie-rods
+    if (UseTierodBodies()) {
+        if (vis == VisualizationType::MESH && !m_tierod_mesh_file.empty()) {
+            AddVisualizationMesh(m_tierod[LEFT], m_tierod_mesh_file, LEFT);
+            AddVisualizationMesh(m_tierod[RIGHT], m_tierod_mesh_file, RIGHT);
+        } else {
+            AddVisualizationTierod(m_tierod[LEFT], m_pointsL[TIEROD_C], m_pointsL[TIEROD_U], getTierodRadius());
+            AddVisualizationTierod(m_tierod[RIGHT], m_pointsR[TIEROD_C], m_pointsR[TIEROD_U], getTierodRadius());
+        }
+    } else {
+        if (vis == VisualizationType::MESH && !m_tierod_mesh_file.empty()) {
+            const auto mesh_file = GetVehicleDataFile(m_tierod_mesh_file);
+            m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
+            m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapePointPointMesh>(mesh_file));
+        } else {
+            m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+            m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        }
     }
 }
 
