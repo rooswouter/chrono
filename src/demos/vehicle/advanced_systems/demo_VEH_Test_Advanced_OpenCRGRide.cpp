@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSuspensionVisualizationType(VisualizationType::MESH);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);
 

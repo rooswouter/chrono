@@ -13,6 +13,7 @@
 #include <cmath>
 
 #include "chrono/assets/ChVisualShapePointPoint.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -101,6 +102,42 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     }
 
     this->SetLineGeometry(std::static_pointer_cast<ChLine>(linepath));
+}
+
+ChVisualShapePointPointMesh::ChVisualShapePointPointMesh(const std::string& filename,
+                                                         double rest_length,
+                                                         double radial_scale)
+    : m_filename(filename), m_rest_length(rest_length), m_radial_scale(radial_scale) {
+    m_mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
+    LoadMaterialsFromObj();
+}
+
+ChVisualShapePointPointMesh::ChVisualShapePointPointMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,
+                                                         double rest_length,
+                                                         double radial_scale)
+    : m_filename(mesh ? mesh->GetFileName() : ""),
+      m_mesh(mesh),
+      m_rest_length(rest_length),
+      m_radial_scale(radial_scale) {
+    LoadMaterialsFromObj();
+}
+
+double ChVisualShapePointPointMesh::GetRestLength() const {
+    if (m_rest_length > 0)
+        return m_rest_length;
+    if (!m_mesh)
+        return 1.0;
+    double dz = m_mesh->GetBoundingBox().Size().z();
+    return (dz > 0) ? dz : 1.0;
+}
+
+void ChVisualShapePointPointMesh::LoadMaterialsFromObj() {
+    if (!m_mesh)
+        return;
+    // Reuse OBJ/MTL material loading implemented on ChVisualShapeTriangleMesh.
+    ChVisualShapeTriangleMesh loader(m_mesh, true);
+    for (unsigned int i = 0; i < loader.GetNumMaterials(); i++)
+        AddMaterial(loader.GetMaterial((int)i));
 }
 
 void ChVisualShapeRotSpring::Update(ChObj* updater, const ChFrame<>& frame) {

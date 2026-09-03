@@ -57,6 +57,7 @@ class ChElementBase;
 %shared_ptr(chrono::ChVisualShapeRotSpring)
 %shared_ptr(chrono::ChVisualShapeSegment)
 %shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapePointPointMesh)
 %shared_ptr(chrono::ChVisualShapeSurface)
 
 #ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP

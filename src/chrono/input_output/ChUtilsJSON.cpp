@@ -310,13 +310,6 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
     if (tsda.HasMember("Preload"))
         preload = tsda["Preload"].GetDouble();
 
-    if(tsda.HasMember("Visualization")) {
-        if (tsda["Visualization"].HasMember("Mesh")) {
-            std::string filename = tsda["Visualization"]["Mesh"].GetString();
-            
-        }
-    }
-
     switch (type) {
         default:
         case FunctorType::Unknown: {

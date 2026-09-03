@@ -108,6 +108,7 @@ using namespace chrono::cascade;
 %shared_ptr(chrono::ChVisualShapePointPoint)
 %shared_ptr(chrono::ChVisualShapeSegment)
 %shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapePointPointMesh)
 %shared_ptr(chrono::ChVisualShapeRotSpring)
 %shared_ptr(chrono::ChVisualShapeTriangleMesh)
 

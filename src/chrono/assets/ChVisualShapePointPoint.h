@@ -14,6 +14,7 @@
 #define CH_VISUAL_SHAPE_POINTPOINT_H
 
 #include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 
@@ -77,6 +78,39 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
     double turns;
     size_t resolution;
     bool m_disable_geom_updates = false;  ///< Skip CPU geometry updates
+};
+
+/// Shape for visualizing a triangle mesh stretched between two moving points.
+/// Visualization systems (e.g. Chrono::VSG) instance the mesh once and update a transform each frame from the two
+/// endpoints. The mesh is assumed to be modeled along the Z axis, with its origin at the midpoint of the rest pose.
+/// \a rest_length is the mesh length along Z used for axial scaling (if <= 0, the mesh AABB size in Z is used).
+/// An instance of this class should not be shared among multiple ChPhysicsItem instances.
+class ChApi ChVisualShapePointPointMesh : public ChVisualShapePointPoint {
+  public:
+    ChVisualShapePointPointMesh(const std::string& filename, double rest_length = 0, double radial_scale = 1);
+    ChVisualShapePointPointMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,
+                                double rest_length = 0,
+                                double radial_scale = 1);
+
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+    const std::string& GetFilename() const { return m_filename; }
+
+    /// Rest length used for axial (Z) scaling. If unset, inferred from the mesh bounding box.
+    double GetRestLength() const;
+    void SetRestLength(double length) { m_rest_length = length; }
+
+    double GetRadialScale() const { return m_radial_scale; }
+    void SetRadialScale(double scale) { m_radial_scale = scale; }
+
+  private:
+    virtual void UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) override {}
+
+    void LoadMaterialsFromObj();
+
+    std::string m_filename;
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;
+    double m_rest_length;
+    double m_radial_scale;
 };
 
 /// Shape representing a rotational spring.

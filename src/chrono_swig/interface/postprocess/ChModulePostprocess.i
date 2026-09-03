@@ -102,6 +102,7 @@ using namespace chrono::postprocess;
 %shared_ptr(chrono::ChVisualShapePointPoint)
 %shared_ptr(chrono::ChVisualShapeSegment)
 %shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapePointPointMesh)
 %shared_ptr(chrono::ChVisualShapeRotSpring)
 %shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::postprocess::ChPostProcessBase)
@@ -184,6 +185,7 @@ using namespace chrono::postprocess;
 %DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapePointPoint)
 %DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSegment)
 %DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSpring)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapePointPointMesh)
 %DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeRotSpring)
 
 //

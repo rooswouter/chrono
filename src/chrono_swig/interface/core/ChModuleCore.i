@@ -528,6 +528,7 @@ inline const char* ChUtils_GetFilename() {
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeRotSpring)
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeSegment)
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeSpring)
+%DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapePointPointMesh)
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeSurface)
 
 

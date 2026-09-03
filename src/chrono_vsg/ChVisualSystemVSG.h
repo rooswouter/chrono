@@ -519,7 +519,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
   private:
     enum class ObjectType { BODY, LINK, FEA, OTHER };
-    enum class PointPointType { SPRING, SEGMENT };
+    enum class PointPointType { SPRING, SEGMENT, MESH };
 
     /// Custom contact reporter to create contact normals and forces VSG nodes.
     class CreateContactsVSG : public ChContactContainer::ReportContactCallback {

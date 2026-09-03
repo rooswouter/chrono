@@ -1294,6 +1294,8 @@ void ChVisualSystemVSG::SetSpringVisibility(bool vis, int tag) {
         child.node->getValue("Tag", c_tag);
         if (type == PointPointType::SPRING && (c_tag == tag || tag == -1))
             child.mask = vis;
+        if (type == PointPointType::MESH && (c_tag == tag || tag == -1))
+            child.mask = vis;
     }
 }
 
@@ -2012,7 +2014,7 @@ void ChVisualSystemVSG::BindCollisionShapesMutable(const std::shared_ptr<ChConta
     m_collMutableScene->addChild(mask, coll_model_group);
 }
 
-// Utility function for creating a frame with its X axis defined by 2 points.
+// Utility function for creating a frame with its Y axis defined by 2 points.
 ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& dist) {
     ChVector3d dir = P2 - P1;
     dist = dir.Length();
@@ -2023,6 +2025,12 @@ ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& di
     R_CS.SetFromDirectionAxes(mx, my, mz);
 
     return ChFrame<>(0.5 * (P2 + P1), R_CS);
+}
+
+// Point-point frame with local Z along P1->P2 (for OBJ meshes modeled along Z).
+// PointPointFrame aligns Y with the segment; QuatFromAngleX(-PI/2) maps mesh +Z onto that axis.
+ChFrame<> PointPointMeshFrame(const ChVector3d& P1, const ChVector3d& P2, double& dist) {
+    return PointPointFrame(P1, P2, dist) * ChFrame<>(VNULL, QuatFromAngleX(-CH_PI_2));
 }
 
 void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChObj>& obj) {
@@ -2065,6 +2073,35 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChObj>& obj) {
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
             auto group = m_shapeBuilder->CreateSpringShape(material, transform, resolution, turns, 2.0f);
             group->setValue("Type", PointPointType::SPRING);
+            group->setValue("Tag", obj->GetTag());
+            group->setValue("Shape", shape);
+            group->setValue("Transform", transform);
+            m_pointpointScene->addChild(mask_springs, group);
+        } else if (auto meshshape = std::dynamic_pointer_cast<ChVisualShapePointPointMesh>(shape)) {
+            auto mesh = meshshape->GetMesh();
+            if (!mesh || mesh->GetNumTriangles() == 0)
+                continue;
+
+            double rest_length = meshshape->GetRestLength();
+            double radial = meshshape->GetRadialScale();
+            double length = (meshshape->GetPoint2Abs() - meshshape->GetPoint1Abs()).Length();
+            ChFrame<> X;
+            if (length < 1e-12) {
+                length = rest_length;
+                X = ChFrame<>(meshshape->GetPoint1Abs(), QuatFromAngleX(-CH_PI_2));
+            } else {
+                X = PointPointMeshFrame(meshshape->GetPoint1Abs(), meshshape->GetPoint2Abs(), length);
+            }
+
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(radial, radial, length / rest_length));
+            bool double_faced = meshshape->IsDoubleFaced();
+            auto group = meshshape->GetNumMaterials() > 0
+                             ? m_shapeBuilder->CreateTrimeshPbrMatShape(mesh, transform, meshshape->GetMaterials(),
+                                                                        double_faced, false)
+                             : m_shapeBuilder->CreateTrimeshColShape(mesh, transform, meshshape->GetColor(),
+                                                                     meshshape->GetOpacity(), double_faced, false);
+            group->setValue("Type", PointPointType::MESH);
             group->setValue("Tag", obj->GetTag());
             group->setValue("Shape", shape);
             group->setValue("Transform", transform);
@@ -2440,6 +2477,9 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
                 break;
             }
             case ChVisualShape::Type::LINE: {
+                // Point-point assets (segment, spring, mesh) are handled in BindPointPoint.
+                if (std::dynamic_pointer_cast<ChVisualShapePointPoint>(shape))
+                    break;
                 auto line = std::static_pointer_cast<ChVisualShapeLine>(shape);
                 auto geometry = line->GetLineGeometry();
                 auto num_points = line->GetNumRenderPoints();
@@ -2810,6 +2850,18 @@ void ChVisualSystemVSG::Update() {
             double length;
             auto X = PointPointFrame(sprshape->GetPoint1Abs(), sprshape->GetPoint2Abs(), length);
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
+        } else if (auto meshshape = std::dynamic_pointer_cast<ChVisualShapePointPointMesh>(shape)) {
+            double rest_length = meshshape->GetRestLength();
+            double radial = meshshape->GetRadialScale();
+            double length = (meshshape->GetPoint2Abs() - meshshape->GetPoint1Abs()).Length();
+            ChFrame<> X;
+            if (length < 1e-12) {
+                length = rest_length;
+                X = ChFrame<>(meshshape->GetPoint1Abs(), QuatFromAngleX(-CH_PI_2));
+            } else {
+                X = PointPointMeshFrame(meshshape->GetPoint1Abs(), meshshape->GetPoint2Abs(), length);
+            }
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(radial, radial, length / rest_length));
         }
     }
 
